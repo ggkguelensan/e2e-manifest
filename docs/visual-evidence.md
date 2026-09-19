@@ -2,6 +2,8 @@
 
 Скриншот дополняет semantic assertion. Он не заменяет её и не становится visual-regression baseline. Screenshot/reporting-код не добавляется в behavioral spec, journey, POM или приложение.
 
+Для выполнения workflow используй [visualize-playwright-flows](../skills/visualize-playwright-flows/SKILL.md): скилл содержит инструкции capture, схему manifest и генератор standalone HTML.
+
 ## Выбор результата
 
 До запуска визуализации определи требуемый результат: галерея в конкретном MR/PR или локальный standalone HTML. Если запрос явно называет формат, повторный вопрос не нужен. Если формат не указан, уточни его до запуска capture. Для двух форматов flow снимается один раз, а оба отчёта строятся из общего evidence manifest.

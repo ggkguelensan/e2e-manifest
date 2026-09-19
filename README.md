@@ -79,3 +79,9 @@
 - [Проверка изменений](docs/verification.md) — обязательные проверки, mutation audit и устройства.
 - [Визуальные доказательства](docs/visual-evidence.md) — capture, MR/PR-галерея и standalone HTML.
 - [Чек-лист ревью](docs/review-checklist.md).
+
+## Skills
+
+[visualize-playwright-flows](skills/visualize-playwright-flows/SKILL.md) — визуализация проходящего Playwright flow: аннотированные скриншоты, галерея MR/PR или автономный HTML-отчёт. Скилл включает инструкции capture, формат evidence manifest и TypeScript-генератор отчёта.
+
+Пример запроса: «Используй `$visualize-playwright-flows`, чтобы собрать HTML-отчёт сценария покупки на mobile и desktop».
