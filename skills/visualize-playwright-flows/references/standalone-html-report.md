@@ -1,5 +1,7 @@
 # Standalone HTML report
 
+Read for a standalone HTML report; defines rendering and browser verification.
+
 ## Output
 
 Generate a local static report directory. Do not commit it unless the user explicitly requests repository artifacts.
