@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "E2E Manifest project patch",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "status",
+    "base_revision",
+    "topic",
+    "scope",
+    "target",
+    "mode",
+    "reason",
+    "requirements",
+    "verification"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "status": {
+      "enum": [
+        "proposed",
+        "active"
+      ]
+    },
+    "base_revision": {
+      "type": "string",
+      "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "topic": {
+      "enum": [
+        "scenarios",
+        "ui",
+        "environment",
+        "contracts",
+        "runtime",
+        "verification",
+        "workflow"
+      ]
+    },
+    "scope": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^(\\.|(?!.*(?:^|/)\\.\\.(?:/|$))[^/\\\\:]+(?:/[^/\\\\:]+)*)$"
+      }
+    },
+    "target": {
+      "type": "string",
+      "pattern": "^docs/[a-z0-9-]+\\.md#[^\\s#]+$"
+    },
+    "mode": {
+      "enum": [
+        "supplement",
+        "override"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "requirements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S"
+      }
+    },
+    "verification": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S"
+      }
+    },
+    "decision_ref": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "mode": {
+            "const": "override"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "decision_ref"
+        ]
+      }
+    }
+  ]
+}

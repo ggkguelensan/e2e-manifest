@@ -33,7 +33,7 @@ Use synthetic identities and data only. Never expose tokens, cookies, real perso
 
 ## Evidence manifest
 
-Generated captures, harness and reports are temporary unless repository artifacts were explicitly requested. Store the temporary manifest next to its screenshots. Paths are relative to the manifest. Name captured screenshots `*.tmp.png`; do not commit them or use them as assertions. Keep report assets for as long as the standalone report is needed, then remove temporary captures and the capture harness.
+For adaptation and coverage, follow the [local storage policy](../../../docs/local-workflow.md): keep data and reports under `e2e/tmp/`, and preserve evidence referenced by the coverage index. Generated captures, harness and reports remain local unless publication of specific artifacts was explicitly requested. Store the temporary manifest next to its screenshots. Paths are relative to the manifest. Name captured screenshots `*.tmp.png`; do not commit them or use them as assertions. Keep report assets for as long as the standalone report is needed, then remove temporary captures and the capture harness.
 
 ```json
 {

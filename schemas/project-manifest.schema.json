@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "E2E Manifest project index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "base",
+    "patches"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "base": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "revision"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?![A-Za-z]:)(?!.*://)(?!.*\\\\).+$"
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+        }
+      }
+    },
+    "patches": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^manifest/patches/[a-z0-9]+(?:-[a-z0-9]+)*\\.json$"
+      }
+    }
+  }
+}
