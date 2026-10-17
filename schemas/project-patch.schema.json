@@ -14,7 +14,10 @@
     "mode",
     "reason",
     "requirements",
-    "verification"
+    "verification",
+    "revision",
+    "updated_at",
+    "resources"
   ],
   "properties": {
     "schema_version": {
@@ -92,6 +95,111 @@
       "type": "string",
       "minLength": 1,
       "pattern": "\\S"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "revision",
+        "reviewed_at",
+        "review_due_at"
+      ],
+      "properties": {
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "review_due_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "path",
+          "kind",
+          "summary",
+          "sha256"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^manifest/resources/(?:[a-z0-9]+(?:-[a-z0-9]+)*/)*[a-z0-9]+(?:-[a-z0-9]+)*\\.md$"
+          },
+          "kind": {
+            "enum": [
+              "rules",
+              "reference"
+            ]
+          },
+          "summary": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "read_when": {
+            "type": "string",
+            "pattern": "\\S"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "reference"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "read_when"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "rules"
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "read_when"
+                ]
+              }
+            }
+          }
+        ]
+      }
     }
   },
   "allOf": [
@@ -106,6 +214,20 @@
       "then": {
         "required": [
           "decision_ref"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "active"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "review"
         ]
       }
     }

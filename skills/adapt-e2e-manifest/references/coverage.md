@@ -38,7 +38,7 @@ e2e/tmp/
 
 | Файл | Обязательная структура помимо `schema_version` |
 | --- | --- |
-| `index.json` | `repository` (HEAD и признаки локальных изменений), `manifest` (base revision и патчи), `scope` (приложения, включённые/исключённые пути, completeness), `files` (относительный path, роль, content hash), `operations` (operation ID, caller layer/origin/interceptor/state owner), `relations` (scenario ID → operation IDs/debt IDs) |
+| `index.json` | `repository` (HEAD и признаки локальных изменений), `manifest` (base revision, patch revisions, время/результат проверки актуальности и hashes загруженных MD-ресурсов), `scope` (приложения, включённые/исключённые пути, completeness), `files` (относительный path, роль, content hash), `operations` (operation ID, caller layer/origin/interceptor/state owner), `relations` (scenario ID → operation IDs/debt IDs) |
 | `adaptation.json` | `decisions` (вопрос, выбранное значение, основание/ответ пользователя), `open_questions`, `limitations`; не хранит секреты и не выдаёт записанное разрешение за бессрочную авторизацию |
 | `runs.json` | `runs`: уникальный run ID, время, revision и индекс локальных изменений, command/profile/policy, scenario IDs, status (`passed`, `failed`, `not-run`), report refs и ограничения |
 | `evidence/*.json` | тип доказательства, связанные IDs, revision, среда без credentials, время, observations и limitations; schema-проверка включает операции и классы samples |
