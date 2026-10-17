@@ -33,10 +33,11 @@ Use synthetic identities and data only. Never expose tokens, cookies, real perso
 
 ## Evidence manifest
 
-For adaptation and coverage, follow the [local storage policy](../../../docs/local-workflow.md): keep data and reports under `e2e/tmp/`, and preserve evidence referenced by the coverage index. Generated captures, harness and reports remain local unless publication of specific artifacts was explicitly requested. Store the temporary manifest next to its screenshots. Paths are relative to the manifest. Name captured screenshots `*.tmp.png`; do not commit them or use them as assertions. Keep report assets for as long as the standalone report is needed, then remove temporary captures and the capture harness.
+For adaptation and coverage, follow the [local storage policy](../../../docs/local-workflow.md): keep data and reports under `e2e/tmp/`, and preserve evidence referenced by the coverage index. Generated captures, harness and reports remain local unless publication of specific artifacts was explicitly requested. Store the temporary manifest next to its screenshots. Paths are relative to the manifest. Name captured screenshots `*.tmp.png`; do not commit them or use them as assertions. Cleanup follows the local storage policy: remove only unreferenced temporary captures and harnesses; preserve indexed evidence and assets of retained reports.
 
 ```json
 {
+	"schema_version": 1,
 	"name": "user-flow",
 	"title": "User flow",
 	"description": "Observable browser journey",
@@ -66,6 +67,6 @@ For adaptation and coverage, follow the [local storage policy](../../../docs/loc
 }
 ```
 
-Required fields are `name`, `title`, non-empty `scenarios`, scenario `id` and `title`, device `name`, and for every step: positive integer `number`, `action`, `expectation`, `screenshot` and `alt`. The report `name` uses lowercase kebab-case. Scenario IDs are unique lowercase kebab-case; step numbers start at one and remain sequential within each device.
+The [renderer](../scripts/render-flow-report.ts) validates this format. Required fields are `schema_version` (exactly `1`), `name`, `title`, non-empty `scenarios`, scenario `id` and `title`, device `name`, and for every step: positive integer `number`, `action`, `expectation`, `screenshot` and `alt`. The report `name` uses lowercase kebab-case. Scenario IDs are unique lowercase kebab-case; step numbers start at one and remain sequential within each device.
 
 Use stable scenario IDs and sequential filenames. Verify every screenshot has a PNG extension, PNG signature and non-zero dimensions. Capture all requested outputs from this one manifest; do not rerun the scenario separately per renderer.

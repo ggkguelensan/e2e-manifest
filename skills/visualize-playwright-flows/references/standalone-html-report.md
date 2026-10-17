@@ -4,7 +4,7 @@ Read for a standalone HTML report; defines rendering and browser verification.
 
 ## Output
 
-Generate a local static report directory. Do not commit it unless the user explicitly requests repository artifacts.
+Generate the report under `e2e/tmp/`. Storage, retention and any explicitly requested export follow the [local storage policy](../../../docs/local-workflow.md); do not change ignore rules to publish a report.
 
 The report must work without an application server, backend or external CDN. Keep screenshots as relative assets rather than base64 by default so the report remains inspectable and reasonably sized.
 
@@ -12,8 +12,8 @@ Resolve the script path relative to this skill directory, not the application re
 
 ```sh
 pnpm exec tsx /absolute/path/to/visualize-playwright-flows/scripts/render-flow-report.ts \
-  --manifest /absolute/path/to/flow-evidence.json \
-  --output /absolute/path/to/playwright-flow-report
+  --manifest /absolute/project/e2e/tmp/flow-evidence.json \
+  --output /absolute/project/e2e/tmp/reports/playwright-flow-report
 ```
 
 Alternatively, Node.js 22.18+ can run this script directly with `node /absolute/path/to/visualize-playwright-flows/scripts/render-flow-report.ts --manifest <manifest.json> --output <directory>`; the renderer uses only Node.js built-ins. It renders existing evidence and does not launch Playwright or capture screenshots.
@@ -33,4 +33,4 @@ Open the generated `<playwright-visualization-name>.<file-hash>.html` in a real 
 - no content depends on network access;
 - the report contains no secrets or real personal data.
 
-Return the absolute path to the generated HTML file and state whether the report was generated as temporary output or a requested repository artifact.
+Return the absolute path to the generated HTML file and state its evidence scope and whether an explicitly requested export was performed.
