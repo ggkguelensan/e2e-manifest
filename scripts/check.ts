@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import './evidence.ts';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,11 +27,6 @@ for (const file of files) {
     const [path, anchor] = decodeURIComponent(href).split('#');
     const target = path ? resolve(dirname(file), path) : file;
     if (!existsSync(target)) {
-      const rel = relative(root, target);
-      // Unselected stack links may point to a tracked module in the complete base.
-      if (rel.startsWith('stack/')) {
-        try { execFileSync('git', ['cat-file', '-e', `HEAD:${rel}`], { cwd: root, stdio: 'ignore' }); continue; } catch {}
-      }
       failures.push(`${relative(root, file)}: missing ${href}`); continue;
     }
     if (anchor && target.endsWith('.md')) {
@@ -41,4 +36,4 @@ for (const file of files) {
   }
 }
 if (failures.length) { console.error(failures.join('\n')); process.exitCode = 1; }
-else console.log('Local Markdown links/anchors and JSON syntax checked. Semantic/schema validation is separate.');
+else console.log('Local Markdown links/anchors, JSON syntax and run/evidence schema compilation checked. Data validation is separate.');
