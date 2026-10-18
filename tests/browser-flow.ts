@@ -30,7 +30,7 @@ const directory = resolve(root, `e2e/tmp/runs/${runId}`); mkdirSync(resolve(root
 mkdirSync(directory); // Refuse to overwrite a previous run.
 mkdirSync(resolve(directory, 'assets'));
 const run: any = { schema_version: 1, run_id: runId, repository_id: args[1] ?? 'isolated-fixture', target_id: args[2] ?? 'ticket-app', worktree, target_path: relative(worktree, root).split('\\').join('/') || '.', revision: git('rev-parse', 'HEAD'), dirty: initialStatus !== '', started_at: new Date().toISOString(), finished_at: null, status: 'running', cases: [], limitations: ['Local client-only fixture; no external backend, SSR or design provider exercised.'] };
-const evidence: any = { schema_version: 1, run_id: runId, items: [] };
+const evidence: any = { schema_version: 2, run_id: runId, items: [] };
 const save = () => { writeFileSync(resolve(directory, 'run.json'), JSON.stringify(run, null, 2)); writeFileSync(resolve(directory, 'evidence.json'), JSON.stringify(evidence, null, 2)); };
 save();
 const server = createServer((req, res) => { if (req.url !== '/') { res.writeHead(404).end(); return; } res.setHeader('Content-Type', 'text/html'); res.end(readFileSync(resolve(root, 'index.html'))); });

@@ -3,7 +3,7 @@
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "const": 1
+      "const": 2
     },
     "run_id": {
       "type": "string",
@@ -58,53 +58,13 @@
             "pattern": "\\S"
           },
           "conditions": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "viewport": {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                  "width": {
-                    "type": "integer",
-                    "minimum": 1
-                  },
-                  "height": {
-                    "type": "integer",
-                    "minimum": 1
-                  }
-                },
-                "required": [
-                  "width",
-                  "height"
-                ]
+            "oneOf": [
+              {
+                "$ref": "#/$defs/uiConditions"
               },
-              "dpr": {
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "theme": {
-                "type": "string",
-                "minLength": 1,
-                "pattern": "\\S"
-              },
-              "locale": {
-                "type": "string",
-                "minLength": 1,
-                "pattern": "\\S"
-              },
-              "state": {
-                "type": "string",
-                "minLength": 1,
-                "pattern": "\\S"
+              {
+                "$ref": "#/$defs/nonBrowserConditions"
               }
-            },
-            "required": [
-              "viewport",
-              "dpr",
-              "theme",
-              "locale",
-              "state"
             ]
           }
         },
@@ -119,6 +79,27 @@
           "mime",
           "description",
           "conditions"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "screenshot"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            },
+            "then": {
+              "properties": {
+                "conditions": {
+                  "$ref": "#/$defs/uiConditions"
+                }
+              }
+            }
+          }
         ]
       }
     }
@@ -129,5 +110,81 @@
     "items"
   ],
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ggkguelensan.github.io/e2e-manifest/schemas/evidence.schema.json"
+  "$id": "https://ggkguelensan.github.io/e2e-manifest/schemas/evidence.schema.json",
+  "$defs": {
+    "uiConditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "viewport": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "width": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "height": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "width",
+            "height"
+          ]
+        },
+        "dpr": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "theme": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "locale": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "state": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        }
+      },
+      "required": [
+        "viewport",
+        "dpr",
+        "theme",
+        "locale",
+        "state"
+      ]
+    },
+    "nonBrowserConditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "execution": {
+          "const": "non-browser"
+        },
+        "environment": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "state": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        }
+      },
+      "required": [
+        "execution",
+        "environment",
+        "state"
+      ]
+    }
+  }
 }

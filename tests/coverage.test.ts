@@ -18,7 +18,7 @@ function fixture(action: (x: any) => void) {
     const directory = resolve(tmp, 'runs/test'); mkdirSync(resolve(directory, 'assets'), { recursive: true });
     const run = { schema_version: 1, run_id: 'test', repository_id: 'fixture', target_id: 'web', worktree: root, target_path: '.', revision: 'a'.repeat(40), dirty: true, started_at: '2026-10-18T10:00:00Z', finished_at: '2026-10-18T10:00:02Z', status: 'passed', cases: [{ id: 'checkout-mobile', scenario_id: 'checkout', spec: { path: 'e2e/checkout.spec.ts', sha256: hash(resolve(root, 'e2e/checkout.spec.ts')) }, scenario: 'Buy ticket', profile: 'mobile', attempt: 1, status: 'passed', steps: [{ id: 'result', title: 'Then result', status: 'passed' }] }], limitations: [] };
     writeFileSync(resolve(directory, 'run.json'), JSON.stringify(run));
-    writeFileSync(resolve(directory, 'evidence.json'), JSON.stringify({ schema_version: 1, run_id: 'test', items: [] }));
+    writeFileSync(resolve(directory, 'evidence.json'), JSON.stringify({ schema_version: 2, run_id: 'test', items: [] }));
   };
   try { action({ root, tmp, write, coverage, debt, check, addRun }); } finally { rmSync(root, { recursive: true, force: true }); }
 }

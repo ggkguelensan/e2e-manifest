@@ -25,7 +25,7 @@ export function renderDesign(target: string, reviewId: string, designRoot: strin
     const ui = pair.ui;
     requireValue(run.repository_id === ui.repository && run.revision === ui.revision && run.dirty === ui.local_changes, 'UI source differs from run provenance');
     const cases = run.cases.filter((c: any) => c.profile === ui.profile && c.attempt === ui.attempt && c.spec.path === ui.spec?.path && c.spec.sha256 === ui.spec?.sha256);
-    requireValue(evidence.items.some((e: any) => cases.some((c: any) => c.id === e.case_id) && e.step_id === ui.step && e.sha256 === ui.artifact.sha256 && e.captured_at === ui.captured_at && e.conditions.dpr === ui.dpr && e.conditions.viewport.width === ui.viewport.width && e.conditions.viewport.height === ui.viewport.height && ['theme', 'locale', 'state'].every(k => e.conditions[k] === ui[k])), 'UI copy does not match original run evidence');
+    requireValue(evidence.items.some((e: any) => e.kind === 'screenshot' && cases.some((c: any) => c.id === e.case_id) && e.step_id === ui.step && e.sha256 === ui.artifact.sha256 && e.captured_at === ui.captured_at && e.conditions.dpr === ui.dpr && e.conditions.viewport.width === ui.viewport.width && e.conditions.viewport.height === ui.viewport.height && ['theme', 'locale', 'state'].every(k => e.conditions[k] === ui[k])), 'UI copy does not match original run evidence');
   }
   const out = resolve(root, 'reports');
   if (existsSync(out)) localFile(root, 'reports'); else mkdirSync(out);

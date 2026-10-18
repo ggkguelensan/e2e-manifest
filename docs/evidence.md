@@ -1,6 +1,6 @@
 # Данные запуска и доказательств
 
-Читай при capture, проверке результатов или построении отчёта. Владелец форматов — E2E Manifest: [run](../schemas/run.schema.json) и [evidence](../schemas/evidence.schema.json). Формат обеих схем — 1; неизвестная версия отклоняется без миграции. Схемы не копируются в приложение или Design Manifest.
+Читай при capture, проверке результатов или построении отчёта. Владелец форматов — E2E Manifest: [run](../schemas/run.schema.json) и [evidence](../schemas/evidence.schema.json). Формат run — 1, evidence — 2; иные версии отклоняются без миграции. Схемы не копируются в приложение или Design Manifest.
 
 ```text
 <target-root>/e2e/tmp/
@@ -48,7 +48,7 @@ Case — конкретные scenario_id, profile и attempt. Сохраняй 
 
 Сначала запиши running с finished_at=null. При завершении запиши конечные статусы; при остановке — interrupted и ограничения. Если процесс погиб до финализации, оставшееся running является незавершённым запуском. Отчёт не исправляет его в passed. Passed требует успешного case и не допускает failed/interrupted/running; skipped не означает проверенное поведение.
 
-Evidence ссылается на case_id/step_id: repository, spec, profile и attempt выводятся через run, а не копируются в каждый объект. Каждый артефакт имеет время, описание, вид, MIME, hash и путь внутри своего run. Условия capture записываются по факту, не берутся из предположений о config. Сейчас conditions обязательны для каждого артефакта; для логов указываются условия связанного шага.
+Evidence ссылается на case_id/step_id: repository, spec, profile и attempt выводятся через run, а не копируются в каждый объект. Каждый артефакт имеет время, описание, вид, MIME, hash и путь внутри своего run. Условия capture записываются по факту, не берутся из предположений о config. Conditions обязательны для каждого артефакта. Для screenshot нужны фактические UI-условия. Небраузерный log/attachment/trace использует `{ "execution": "non-browser", "environment": "<согласованная среда>", "state": "<проверенное состояние>" }`; не придумывай viewport, DPR, тему и locale. Environment — безопасный идентификатор среды без credentials; детали операции и проверенных samples находятся в артефакте. Лог браузерного шага сохраняет его UI-условия.
 
 ## Проверка
 
