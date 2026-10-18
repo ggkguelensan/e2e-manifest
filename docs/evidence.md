@@ -8,6 +8,7 @@
 ├── adaptation.json
 ├── coverage.csv
 ├── debt.csv
+├── coverage-links.json              # отношения сценариев и долга
 ├── index.json                       # производный индекс
 ├── runs/<run-id>/
 │   ├── run.json                     # авторитетный результат

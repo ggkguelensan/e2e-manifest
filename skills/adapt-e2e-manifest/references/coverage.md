@@ -12,13 +12,9 @@
 
 ## Таблицы CSV
 
-| Файл | Обязательные колонки |
-| --- | --- |
-| `coverage.csv` | `scenario_id,capability,scenario,spec,boundary,implementation,last_run_id` |
-| `debt.csv` | `debt_id,kind,status,location,gap,workaround,risk,resolution,evidence_ref` |
-| `contracts.csv` | `operation_id,service,method,path,source,source_revision,validation_status,evidence_ref,limitation` |
+Точный состав колонок — `columns` в [валидаторе](../../../scripts/coverage.ts): coverage описывает сценарий/spec и последний связанный run; debt — проблему, обход, риск и разрешение; contracts — источник HTTP-операции и область проверки. Заголовок обязателен, порядок колонок свободный, неизвестные/повторные колонки отклоняются.
 
-Одна строка coverage — самостоятельный сценарий, включая вариант параметризации. ID стабилен при переименовании; устройства учитываются в runs, не как новые сценарии. `implementation`: `planned`, `implemented`, `blocked`; planned без существующего spec имеет пустой `spec`, blocked связан с конкретным debt. `boundary`: `browser` или `browser+ssr`; исключения раскрываются в index.
+Одна строка coverage — самостоятельный сценарий, включая вариант параметризации. ID стабилен при переименовании; устройства учитываются в runs, не как новые сценарии. `implementation`: `planned`, `implemented`, `blocked`; planned без существующего spec имеет пустой `spec`, blocked связан с открытым debt через coverage-links.json. `boundary`: `browser` или `browser+ssr`; исключения раскрываются в index.
 
 `debt.kind`: `a11y`, `contract`, `topology`, `ssr`, `infrastructure`; `status`: `open`, `resolved`. Для a11y запиши компонент/POM-метод, отсутствующий accessible name/role/label, фактический fallback, проверку уникальности и целевой semantic locator. Functional pass не закрывает a11y-долг. Ненадёжная идентификация объекта означает blocked, а не произвольный `first()`/`nth()`.
 
@@ -28,13 +24,40 @@
 
 | Файл | Обязательная структура помимо `schema_version` |
 | --- | --- |
-| `index.json` | `repository` (HEAD и признаки локальных изменений), `manifest` (base revision, patch revisions, время/результат проверки актуальности и hashes загруженных MD-ресурсов), `scope` (приложения, включённые/исключённые пути, completeness), `files` (относительный path, роль, content hash), `operations` (operation ID, caller layer/origin/interceptor/state owner), `relations` (scenario ID → operation IDs/debt IDs) |
+| `index.json` | `repository` (HEAD и признаки локальных изменений), `manifest` (base revision, patch revisions, время/результат проверки актуальности и hashes загруженных MD-ресурсов), `scope` (приложения, включённые/исключённые пути, completeness), `files` (относительный path, роль, content hash), `operations` (operation ID, caller layer/origin/interceptor/state owner), `relations` (производные связи из авторитетных данных, без отдельного редактирования) |
 | `adaptation.json` | `decisions` (вопрос, выбранное значение, основание/ответ пользователя), `open_questions`, `limitations`; не хранит секреты и не выдаёт записанное разрешение за бессрочную авторизацию |
 
-Пути к source (`spec`, `location`, `files.path`) относительны корню проекта; пути к evidence/report — `e2e/tmp/`. Не допускай выход из tmp для evidence и отчётов. Ссылки связываются по IDs; dangling/duplicate IDs считаются ошибкой индекса. Одна операция имеет одного владельца synthetic state в данном runtime; index показывает обнаруженные конфликты, не скрывает их слиянием записей.
+Пути к source (`spec`, `location`, `files.path`) относительны выбранному target root; пути к evidence/report — `e2e/tmp/`. Не допускай выход из tmp для evidence и отчётов. Ссылки связываются по IDs; dangling/duplicate IDs считаются ошибкой индекса. Одна операция имеет одного владельца synthetic state в данном runtime; index показывает обнаруженные конфликты, не скрывает их слиянием записей.
 
 До использования результатов сверь HEAD, content hashes затронутых файлов и base/patch revisions. Неполное обследование маркируется в scope, устаревший результат не переносится как passed. Discovery runner сверяет реальные specs с coverage без real-backend запросов.
 
 ## Учёт результата
 
 Наличие spec не означает passed; прохождение нескольких samples не подтверждает полный контракт; количество device runs не равно числу сценариев. Run/evidence являются авторитетными данными запуска; HTML и индексы производны. CSV описывает покрытие, а не дублирует результаты отдельных попыток. Храни данные локально и не удаляй их при обычном cleanup. Изменение приложения для закрытия a11y-долга, запросы к real backend и публикация требуют соответствующего отдельного поручения.
+
+## Проверка таблиц и связей
+
+```sh
+npm run validate:coverage -- --target /absolute/worktree/apps/web
+```
+
+Команда читает существующие coverage/debt/contracts CSV; отсутствие таблицы возвращается как `not-surveyed`. Парсер [csv-parse](https://csv.js.org/parse/api/sync/) поддерживает стандартное quoting, multiline и BOM. Дубли ID, неизвестные колонки, неверные статусы и некорректные пути отклоняются.
+
+`coverage-links.json` — авторитетные отношения scenario↔debt, когда они нужны:
+
+```json
+{
+  "schema_version": 1,
+  "scenario_debt": [
+    { "scenario_id": "checkout", "debt_id": "missing-name" }
+  ]
+}
+```
+
+Это пример IDs, а не готовые данные проекта. Допустимы несколько долгов на сценарий и один долг для нескольких сценариев; пара уникальна, оба ID существуют в CSV. Производный index не становится вторым местом редактирования отношений.
+
+`last_run_id` ссылается на run, содержащий scenario_id с тем же spec path и текущим hash. Run проверяется [валидатором evidence](../../../docs/evidence.md); его статус не переписывается в CSV. Ссылка может вести на failed/interrupted run — она не означает успех. Изменение других исходников требует отдельной проверки актуальности, даже при неизменном spec.
+
+`evidence_ref` использует формат `runs/<run-id>/evidence.json#<evidence-id>` относительно tmp. Проверяются исходный run, его артефакты и существование ID. Для resolved debt нужны resolution и evidence_ref; наличие ссылки не доказывает смысловое устранение проблемы. Для выполненной проверки контракта обязательны source_revision, evidence_ref и limitation, ограничивающий вывод проверенными samples.
+
+Валидатор не запускает приложение, не обращается к backend и не доказывает полноту покрытия. Он проверяет сохранённые данные; discovery runner и смысловой аудит остаются отдельными действиями.
