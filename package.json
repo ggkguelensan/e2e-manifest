@@ -13,9 +13,11 @@
     "hooks:install": "lefthook install",
     "validate:evidence": "node scripts/evidence.ts",
     "validate:coverage": "node scripts/coverage.ts",
-    "report": "node scripts/report.ts"
+    "report": "node scripts/report.ts",
+    "test:browser": "node tests/browser-flow.ts"
   },
   "devDependencies": {
+    "@playwright/test": "1.60.0",
     "lefthook": "2.2.2"
   },
   "dependencies": {
