@@ -49,6 +49,8 @@ Playwright fixture создаёт зависимости и управляет l
 | Добавить HTTP-операцию или DTO | [Контракты](docs/contracts.md) | Окружение; runtime — если меняется механизм |
 | Изменить серверы, proxy или lifecycle | [HTTP runtime](stack/msw/http-runtime.md) | Проверка изменений |
 | Провести ревью или разобрать падение | [Проверка изменений](docs/verification.md) | Документ затронутого слоя |
+| Создать HTML или MR/PR-отчёт | [create-e2e-report](skills/create-e2e-report/SKILL.md) | Только выбранный формат |
+| Сравнить UI с дизайном | [Design Manifest integration](docs/design-comparison.md) | Подключённый design skill |
 | Создать визуальное доказательство | [Визуальные доказательства](docs/visual-evidence.md) | Указанный там skill и выбранный формат |
 
 ## Граница доказательства

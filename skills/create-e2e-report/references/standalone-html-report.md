@@ -11,12 +11,12 @@ The report must work without an application server, backend or external CDN. Kee
 Resolve the script path relative to this skill directory, not the application repository. Run it in an environment with Node.js and `tsx` available (`pnpm exec tsx` uses the project dependency):
 
 ```sh
-pnpm exec tsx /absolute/path/to/visualize-playwright-flows/scripts/render-flow-report.ts \
+pnpm exec tsx /absolute/path/to/create-e2e-report/scripts/render-flow-report.ts \
   --manifest /absolute/project/e2e/tmp/flow-evidence.json \
   --output /absolute/project/e2e/tmp/reports/playwright-flow-report
 ```
 
-Alternatively, Node.js 22.18+ can run this script directly with `node /absolute/path/to/visualize-playwright-flows/scripts/render-flow-report.ts --manifest <manifest.json> --output <directory>`; the renderer uses only Node.js built-ins. It renders existing evidence and does not launch Playwright or capture screenshots.
+Alternatively, Node.js 22.18+ can run this script directly with `node /absolute/path/to/create-e2e-report/scripts/render-flow-report.ts --manifest <manifest.json> --output <directory>`; the renderer uses only Node.js built-ins. It renders existing evidence and does not launch Playwright or capture screenshots.
 
 The generated report is named `<playwright-visualization-name>.<file-hash>.html`. The visualization name comes from `manifest.name`. The 12-character SHA-256 prefix is calculated from the final HTML; screenshot content hashes are included in asset names, so changed visual evidence also changes the report hash.
 
@@ -34,3 +34,9 @@ Open the generated `<playwright-visualization-name>.<file-hash>.html` in a real 
 - the report contains no secrets or real personal data.
 
 Return the absolute path to the generated HTML file and state its evidence scope and whether an explicitly requested export was performed.
+
+## Other report types
+
+The bundled renderer accepts only the [flow evidence format](../../visualize-playwright-flows/references/capture-evidence.md). It does not interpret design comparison findings or generic test results. Do not coerce failed tests into successful flow steps.
+
+For a general results or comparison report, generate local static HTML from the structured input: scope/results first, findings with original image pairs next, limitations and provenance alongside the relevant finding. Escape all input text, use relative assets, no remote scripts/CDN or raw SVG injection. Keep source JSON and originals. This mode is an agent-authored document, not a claimed built-in renderer capability. Apply the same browser verification above.

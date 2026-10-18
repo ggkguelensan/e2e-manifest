@@ -67,6 +67,6 @@ For adaptation and coverage, follow the [local storage policy](../../../docs/loc
 }
 ```
 
-The [renderer](../scripts/render-flow-report.ts) validates this format. Required fields are `schema_version` (exactly `1`), `name`, `title`, non-empty `scenarios`, scenario `id` and `title`, device `name`, and for every step: positive integer `number`, `action`, `expectation`, `screenshot` and `alt`. The report `name` uses lowercase kebab-case. Scenario IDs are unique lowercase kebab-case; step numbers start at one and remain sequential within each device.
+The [renderer](../../create-e2e-report/scripts/render-flow-report.ts) validates this format. Required fields are `schema_version` (exactly `1`), `name`, `title`, non-empty `scenarios`, scenario `id` and `title`, device `name`, and for every step: positive integer `number`, `action`, `expectation`, `screenshot` and `alt`. The report `name` uses lowercase kebab-case. Scenario IDs are unique lowercase kebab-case; step numbers start at one and remain sequential within each device.
 
 Use stable scenario IDs and sequential filenames. Verify every screenshot has a PNG extension, PNG signature and non-zero dimensions. Capture all requested outputs from this one manifest; do not rerun the scenario separately per renderer.

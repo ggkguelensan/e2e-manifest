@@ -1,22 +1,14 @@
 ---
 name: visualize-playwright-flows
-description: Visualize a passing Playwright user flow as annotated screenshot evidence in a standalone HTML report or an MR/PR gallery. Use when asked to demonstrate or document a tested browser scenario; not for visual-regression baselines.
+description: Capture annotated visual evidence from a passing Playwright scenario using its public spec and fixtures. Use when new browser captures are needed; existing results are formatted by create-e2e-report.
 ---
 
-# Visualize Playwright flows
+# Capture Playwright flows
 
-Создай визуальное доказательство проходящего behavioral scenario. Journey необязателен: шаги определяются по spec, а capture использует публичные POM, Journey и controls из fixture. Скилл применяется к целевому репозиторию; команды, profiles и окружение берутся из его конфигурации.
+1. Прочитай [capture-evidence](references/capture-evidence.md) и [локальную политику](../../docs/local-workflow.md). Получи выбранный spec, профили и ревизию; Journey необязателен.
+2. Подтверди прохождение целевого сценария. Существенные шаги извлекаются из публичного spec без чтения реализации helpers. При падении сохрани диагностику, не выдавая её за успешный flow.
+3. Используй публичные POM/Journey/controls из fixture. Отдельный временный harness допустим, когда штатных artifacts недостаточно. Не добавляй screenshot hooks в продукт, spec или POM.
+4. Собери один evidence manifest с кадрами в e2e/tmp/. Дополнительный capture-прогон фиксируется как отдельное выполнение; он не является кадрами предшествующего теста.
+5. Передай evidence в [create-e2e-report](../create-e2e-report/SKILL.md). Для сравнения с макетом используй [границу Design Manifest](../../docs/design-comparison.md); capture не устанавливает соответствие дизайну.
 
-Для задач адаптации и покрытия сохраняй manifest, captures и reports в `e2e/tmp/`; `/tmp/` должен быть исключён через `e2e/.gitignore`. По умолчанию отчёт локальный; публикация галереи требует явного поручения. Подробные границы — [локальная политика](../../docs/local-workflow.md).
-
-Skill использует полный комплект манифеста. При отдельной установке найди зафиксированную поставку и её [точку входа](../../README.md); отсутствие связанных правил нельзя заменять предположениями.
-
-## Порядок работы
-
-1. Определи формат по запросу и контексту: локальный HTML, галерея в конкретном MR/PR или оба. Если формат не определён, создай локальный HTML. Уже выбранный формат повторно не согласовывай; отсутствие поручения на публикацию не разрешает галерею.
-2. Прочитай [capture-evidence.md](references/capture-evidence.md): обязательные правила подготовки, съёмки, безопасности, manifest и очистки. Подтверди прохождение целевого сценария на нужных profiles. При падении сообщи причину; частичные кадры не являются доказательством успешного flow.
-3. Выведи шаги и ожидания из spec. Собери одну съёмку и один evidence manifest, используя временный harness только при необходимости.
-4. Прочитай только выбранную инструкцию:
-   - [standalone-html-report.md](references/standalone-html-report.md) — локальный HTML через [render-flow-report.ts](scripts/render-flow-report.ts) и проверка в браузере;
-   - [review-gallery.md](references/review-gallery.md) — авторизация обновления, upload и проверка галереи.
-5. Выполни проверки выбранного формата. Передай абсолютный путь HTML или ссылку на обновлённый MR/PR, укажи представленные сценарии и устройства. Очисти временные материалы по правилам capture, сохранив assets используемого отчёта.
+Skill использует полный комплект E2E Manifest: вход — [AGENTS.md](../../AGENTS.md). Сбор доказательств не включает публикацию.

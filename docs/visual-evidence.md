@@ -1,16 +1,11 @@
-# Визуальные доказательства
+# Визуальные доказательства и отчёты
 
-**Когда читать:** запрос кадров, MR/PR-галереи или автономного HTML-отчёта.
-**Определяет:** выбор процедуры и источников правил визуализации.
+**Когда читать:** кадры сценария, HTML, MR/PR-отчёт или сравнение с дизайном.
 
-Локальный capture и отчёты создаются в `e2e/tmp/`. MR/PR-галерея выполняется только по явному поручению согласно [локальной политике](local-workflow.md).
-
-Используй [visualize-playwright-flows](../skills/visualize-playwright-flows/SKILL.md). Skill выполняет capture проходящего behavioral scenario и направляет к одному нужному формату. Его ресурсы — единственный источник подробных правил:
-
-| Задача | Документ |
+| Задача | Владелец процедуры |
 | --- | --- |
-| Capture, annotations, безопасность, evidence manifest и cleanup | [Capture evidence](../skills/visualize-playwright-flows/references/capture-evidence.md) |
-| Загрузка кадров и обновление описания MR/PR | [Review gallery](../skills/visualize-playwright-flows/references/review-gallery.md) |
-| Генерация и проверка автономного HTML | [Standalone report](../skills/visualize-playwright-flows/references/standalone-html-report.md) |
+| Собрать новые кадры Playwright | [visualize-playwright-flows](../skills/visualize-playwright-flows/SKILL.md) |
+| Оформить готовые результаты как HTML/MR/PR | [create-e2e-report](../skills/create-e2e-report/SKILL.md) |
+| Сравнить UI с Figma/Penpot | [Интеграция Design Manifest](design-comparison.md) |
 
-Шаги берутся из публичного сценария независимо от наличия Journey. Capture harness использует предоставленные POM, Journey и controls; reporting-код остаётся вне приложения и behavioral suite. Изображение дополняет semantic assertion и не является baseline. Оба формата строятся из одной съёмки и одного manifest.
+Хранение и публикация определены [локальной политикой](local-workflow.md). Capture не включает оформление или публикацию автоматически. Разные форматы используют одно evidence. Сравнение не меняет функциональный результат запуска и не создаёт visual-regression baseline.
