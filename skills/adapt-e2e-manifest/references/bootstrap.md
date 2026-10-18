@@ -15,7 +15,7 @@
 | Contracts / stubs | Задать provenance и статус валидации; использовать [правила неопределённых контрактов](../../../docs/contracts.md#неподтверждённый-контракт) вместо выдуманного строгого DTO |
 | Первый сценарий | Полный выбранный пользовательский результат, Gherkin ↔ spec, нужные POM; Journey только при необходимости |
 | Команды | Runtime, behavioral, smoke/real-backend validation отдельно; выбор spec/profile, typecheck/lint E2E, просмотр reports |
-| Правила и coverage | Локальный вход, [проектные патчи](../../../docs/project-patches.md), CSV/JSON [реестра](coverage.md) в `e2e/tmp/`, `/tmp/` в `e2e/.gitignore` |
+| Правила и coverage | Короткий e2e/AGENTS.md с target и ссылкой на внешнюю адаптацию, CLAUDE.md → AGENTS.md без копирования, README.md с реальными командами запуска; [проектные патчи](../../../docs/project-patches.md), CSV/JSON [реестра](coverage.md) в `e2e/tmp/`, `/tmp/` в `e2e/.gitignore` |
 
 Test-only изменения общих manifests/config допустимы, если штатные команды и поведение приложения сохраняются. Не добавляй тестовые ветки в components, API-clients, routes или SSR; не обновляй runtime-зависимости продукта ради удобства E2E. Конфликт зависимостей решай test-only изоляцией либо фиксируй препятствие.
 

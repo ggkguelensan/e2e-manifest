@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync, symlinkSync, realpathSync } from 'node:fs';
 import { basename, dirname, relative, resolve, sep } from 'node:path';
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
@@ -16,6 +16,7 @@ const e2eBase = resolve('.');
 assert.equal(gitAt(e2eBase, 'status', '--porcelain'), '', 'Use a clean E2E checkout for pinned adaptation');
 const e2eRevision = gitAt(e2eBase, 'rev-parse', 'HEAD');
 const projectRevision = gitAt(projectBase, 'rev-parse', 'HEAD');
+const { observePiCli } = await import(pathToFileURL(resolve(projectBase, 'tests/helpers/pi-cli-observation.ts')).href);
 const { inspectPi } = await import(pathToFileURL(resolve(projectBase, 'tests/helpers/pi-discovery.ts')).href);
 const { validateConnections } = await import(pathToFileURL(resolve(projectBase, 'scripts/connections.ts')).href);
 const { readProject, planTask } = await import(pathToFileURL(resolve(projectBase, 'scripts/project.ts')).href);
@@ -25,6 +26,19 @@ const repo = resolve(root, 'repositories/frontend');
 mkdirSync(resolve(repo, 'apps'), { recursive: true });
 cpSync('tests/fixtures/ticket-app', resolve(repo, 'apps/ticket'), { recursive: true });
 writeFileSync(resolve(repo, 'apps/ticket/e2e/.gitignore'), '/tmp/\n');
+const entryText = `# Ticket fixture E2E
+
+Repository: frontend. Target: ticket. Work only in the selected task worktree.
+This synthetic client-only fixture uses the selected Playwright module.
+External adaptation: ${resolve(e2eBase, 'workdir', basename(root), 'manifest.json')}.
+Read that pinned base's AGENTS.md for the current task; do not load other stack modules.
+Keep capture and reporting separate. Results belong to this target's e2e/tmp/.
+This probe does not authorize changes to the application or publication.
+`;
+writeFileSync(resolve(repo, 'apps/ticket/e2e/AGENTS.md'), entryText);
+symlinkSync('AGENTS.md', resolve(repo, 'apps/ticket/e2e/CLAUDE.md'));
+writeFileSync(resolve(repo, 'apps/ticket/e2e/README.md'), `# Ticket E2E fixture\n\nAgent entry: [AGENTS.md](AGENTS.md). This is a synthetic client-only application.\nRun from the pinned E2E base: node tests/browser-flow.ts <absolute-target-root> frontend ticket.\nReports and source evidence are under e2e/tmp/runs/reserve-ticket/. Existing runs are preserved; use a new fixture for another capture.\n`);
+
 gitAt(repo, 'init', '-b', 'dev'); gitAt(repo, 'add', '.');
 gitAt(repo, '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-m', 'Nested fixture application');
 const worktree = resolve(root, 'worktrees/task');
@@ -66,7 +80,22 @@ const selectedSkills = [
   { name: 'visualize-playwright-flows', path: resolve('skills/visualize-playwright-flows') },
   { name: 'create-e2e-report', path: resolve('skills/create-e2e-report') },
 ];
-const context = await inspectPi(selection.target_root, selectedSkills);
+function preparedContext(label: string, skills: {name: string; path: string}[]) {
+  const entry = resolve(selection.target_root, 'e2e/AGENTS.md');
+  assert.equal(realpathSync(resolve(selection.target_root, 'e2e/CLAUDE.md')), realpathSync(entry));
+  const output = resolve(selection.target_root, 'e2e/tmp/context', label);
+  const agentDir = resolve(output, 'agent'); mkdirSync(agentDir, {recursive: true});
+  const args = ['--offline', '--no-session', '--no-extensions', '--no-skills', '--no-prompt-templates', '--no-themes', '--no-context-files', '--system-prompt', '', '--append-system-prompt', entry, '--tools', 'read', '--mode', 'rpc', '--approve', ...skills.flatMap(skill => ['--skill', skill.path])];
+  const observation = observePiCli(selection.target_root, args, agentDir, output);
+  assert.ok(observation.prompt.includes(entryText.trim()), 'Selected worktree entry must be in actual CLI context');
+  const catalog = observation.prompt.match(/<available_skills>([\s\S]*?)<\/available_skills>/)?.[1];
+  assert.ok(catalog, 'Native skill catalog missing');
+  const names = [...catalog.matchAll(/<name>(.*?)<\/name>/g)].map(match => match[1]).sort();
+  assert.deepEqual(names, skills.map(skill => skill.name).sort());
+  assert.deepEqual(observation.tools, ['read']);
+  return { observation: resolve(output, 'observation.json'), instruction: entry, skills: names, tools: observation.tools, prompt_sha256: createHash('sha256').update(observation.prompt).digest('hex'), model_calls: 0, limitation: 'Prepared native CLI context; referenced norms and full skill bodies remain deferred, no model execution.' };
+}
+const context = { discovery: await inspectPi(selection.target_root, selectedSkills), prepared: preparedContext('capture', selectedSkills) };
 capture();
 const { run } = validateRun(selection.target_root, 'reserve-ticket');
 assert.equal(run.worktree, selection.worktree);
@@ -92,10 +121,11 @@ assert.equal(gitAt(repo, 'status', '--porcelain'), '');
 assert.equal(gitAt(worktree, 'status', '--porcelain'), '');
 let designReview = null;
 if (designBase) {
-  const designContext = await inspectPi(selection.target_root, [
+  const designSkills = [
     { name: 'compare-ui-with-design', path: resolve(designBase, 'skills/compare-ui-with-design') },
     { name: 'create-e2e-report', path: resolve('skills/create-e2e-report') },
-  ]);
+  ];
+  const designContext = { discovery: await inspectPi(selection.target_root, designSkills), prepared: preparedContext('comparison', designSkills) };
   const exported = JSON.parse(execFileSync(process.execPath, ['tests/reference-comparison.ts', selection.target_root, 'reserve-ticket', designBase], { encoding: 'utf8', stdio: 'pipe' }));
   assert.equal(exported.revision, gitAt(designBase, 'rev-parse', 'HEAD'));
   const comparison = JSON.parse(readFileSync(resolve(exported.root, 'comparison.json'), 'utf8'));
@@ -118,6 +148,6 @@ if (designBase) {
 }
 assert.equal(gitAt(worktree, 'status', '--porcelain'), '');
 assert.deepEqual(validateConnections(definitionPath, projectRoot, task, adaptations).selection, selection);
-const proof = { project_root: projectRoot, project_definition: definitionPath, adaptations, connections, project_revision: projectRevision, selection, context, design_review: designReview, checks: ['registered pinned bases and permanent adaptations validated before capture and after reporting', 'native Pi command discovery equals selected real capture/report skills', 'main clone rejected', 'nested target captured', 'run identity matches selection', 'existing run preserved', 'same run ID isolated in second worktree', 'source checkout and worktree unchanged'], limitations: ['Pi command discovery checked without model calls; full prompt and skill execution not tested. Context files disabled for diagnostic. Worktrunk creation not exercised.'] };
+const proof = { project_root: projectRoot, project_definition: definitionPath, adaptations, connections, project_revision: projectRevision, selection, context, design_review: designReview, checks: ['registered pinned bases and permanent adaptations validated before capture and after reporting', 'native Pi command discovery and prepared CLI catalog equal selected real skills', 'worktree AGENTS loaded and CLAUDE symlink resolves to it', 'main clone rejected', 'nested target captured', 'run identity matches selection', 'existing run preserved', 'same run ID isolated in second worktree', 'source checkout and worktree unchanged'], limitations: ['Native Pi prepared context observed with explicit fixture instructions and skills, no model calls or procedure execution. Referenced norms deferred. Worktrunk creation not exercised by this browser probe.'] };
 writeFileSync(resolve(selection.target_root, 'e2e/tmp/worktree-verification.json'), JSON.stringify(proof, null, 2));
 console.log(JSON.stringify({ root, ...proof }, null, 2));
