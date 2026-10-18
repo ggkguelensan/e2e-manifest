@@ -1,3 +1,4 @@
+import './index.ts';
 import './evidence.ts';
 import './adaptation.ts';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
