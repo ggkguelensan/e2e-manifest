@@ -1,42 +1,17 @@
-# Standalone HTML report
+# Local HTML report
 
-Read for a standalone HTML report; defines rendering and browser verification.
+Read when HTML is requested. Generate from existing evidence; do not launch the application again for formatting.
 
-## Output
-
-Generate the report under `e2e/tmp/`. Storage, retention and any explicitly requested export follow the [local storage policy](../../../docs/local-workflow.md); do not change ignore rules to publish a report.
-
-The report must work without an application server, backend or external CDN. Keep screenshots as relative assets rather than base64 by default so the report remains inspectable and reasonably sized.
-
-Resolve the script path relative to this skill directory, not the application repository. Run it in an environment with Node.js and `tsx` available (`pnpm exec tsx` uses the project dependency):
+From the pinned E2E Manifest checkout:
 
 ```sh
-pnpm exec tsx /absolute/path/to/create-e2e-report/scripts/render-flow-report.ts \
-  --manifest /absolute/project/e2e/tmp/flow-evidence.json \
-  --output /absolute/project/e2e/tmp/reports/playwright-flow-report
+npm run report -- --target /absolute/worktree/apps/web --run checkout-mobile
 ```
 
-Alternatively, Node.js 22.18+ can run this script directly with `node /absolute/path/to/create-e2e-report/scripts/render-flow-report.ts --manifest <manifest.json> --output <directory>`; the renderer uses only Node.js built-ins. It renders existing evidence and does not launch Playwright or capture screenshots.
+The [renderer](../../../scripts/report.ts) validates [run/evidence](../../../docs/evidence.md) before writing `runs/<run-id>/reports/run-<hash>.html`. It preserves case/step statuses, missing artifacts, limitations, profiles, attempts and source provenance. Invalid evidence aborts rendering. Existing reports are preserved; identical inputs reuse identical output. Artifact hashes participate in report content.
 
-The generated report is named `<playwright-visualization-name>.<file-hash>.html`. The visualization name comes from `manifest.name`. The 12-character SHA-256 prefix is calculated from the final HTML; screenshot content hashes are included in asset names, so changed visual evidence also changes the report hash.
+HTML has no external dependencies or JavaScript. Images and source JSON use relative links to immutable run originals, avoiding copied evidence and embedded image payloads. The report works locally while the run directory is retained; copying only the HTML does not package its resources. Any requested export must include the referenced run resources and follow the [publication policy](../../../docs/local-workflow.md).
 
-Use `--force` only after resolving the exact generated report path and confirming it is the report that should be replaced.
+Open the generated report in a real browser at desktop and narrow widths. Verify navigation, ordered steps, readable loaded images, keyboard focus, no network dependencies, correct statuses and absence of secrets. State separately whether file validation and browser inspection were performed.
 
-## Verification
-
-Open the generated `<playwright-visualization-name>.<file-hash>.html` in a real browser and inspect at desktop and narrow mobile widths. Verify:
-
-- scenario/device navigation follows the manifest;
-- all steps and expectations are present in order;
-- every screenshot loads and remains readable;
-- keyboard focus and headings provide usable navigation;
-- no content depends on network access;
-- the report contains no secrets or real personal data.
-
-Return the absolute path to the generated HTML file and state its evidence scope and whether an explicitly requested export was performed.
-
-## Other report types
-
-The bundled renderer accepts only the [flow evidence format](../../visualize-playwright-flows/references/capture-evidence.md). It does not interpret design comparison findings or generic test results. Do not coerce failed tests into successful flow steps.
-
-For a general results or comparison report, generate local static HTML from the structured input: scope/results first, findings with original image pairs next, limitations and provenance alongside the relevant finding. Escape all input text, use relative assets, no remote scripts/CDN or raw SVG injection. Keep source JSON and originals. This mode is an agent-authored document, not a claimed built-in renderer capability. Apply the same browser verification above.
+The current command renders functional run evidence. Design comparison needs the pinned Design Manifest validator and comparison-aware rendering; do not present its absence as a completed design review. A manually prepared comparison report must preserve all pairs and limitations, validate its source JSON, escape text and keep original image provenance. The coordinated renderer integration is still pending.

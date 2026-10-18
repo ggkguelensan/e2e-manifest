@@ -1,6 +1,6 @@
 # Capture visual evidence
 
-**Read for:** every capture. Defines evidence rules and the shared manifest.
+**Read for:** every capture. Defines capture rules; the shared schemas own the data format.
 
 ## Preconditions
 
@@ -31,42 +31,12 @@ A passing Playwright scenario is necessary but not sufficient visual evidence:
 
 Use synthetic identities and data only. Never expose tokens, cookies, real personal data or private environment values.
 
-## Evidence manifest
+## Evidence storage
 
-For adaptation and coverage, follow the [local storage policy](../../../docs/local-workflow.md): keep data and reports under `e2e/tmp/`, and preserve evidence referenced by the coverage index. Generated captures, harness and reports remain local unless publication of specific artifacts was explicitly requested. Store the temporary manifest next to its screenshots. Paths are relative to the manifest. Name captured screenshots `*.tmp.png`; do not commit them or use them as assertions. Cleanup follows the local storage policy: remove only unreferenced temporary captures and harnesses; preserve indexed evidence and assets of retained reports.
+Use the authoritative [run/evidence format](../../../docs/evidence.md), not a second flow manifest. Capture writes `runs/<run-id>/run.json`, `evidence.json` and `assets/` inside the selected target's `e2e/tmp/`. Storage and publication follow the [local policy](../../../docs/local-workflow.md).
 
-```json
-{
-	"schema_version": 1,
-	"name": "user-flow",
-	"title": "User flow",
-	"description": "Observable browser journey",
-	"source": "e2e/example.main.spec.ts",
-	"generatedAt": "2026-01-01T00:00:00.000Z",
-	"scenarios": [
-		{
-			"id": "primary-flow",
-			"title": "Primary user flow",
-			"devices": [
-				{
-					"name": "mobile-webkit",
-					"viewport": { "width": 390, "height": 844 },
-					"steps": [
-						{
-							"number": 1,
-							"action": "The user opens the start page",
-							"expectation": "The primary navigation is available",
-							"screenshot": "01-start.tmp.png",
-							"alt": "Start page with the primary navigation highlighted"
-						}
-					]
-				}
-			]
-		}
-	]
-}
-```
+Start run.json before execution with running status. Each executed case identifies scenario_id, spec path/hash, profile and attempt; each public step has a stable ID and outcome. Preserve failed/interrupted attempts. A screenshot proving a passed assertion belongs to that case/step and records its actual capture conditions, timestamp, MIME and SHA-256. Diagnostic failure captures are labelled as diagnostics, never as proof of a passed expectation.
 
-The [renderer](../../create-e2e-report/scripts/render-flow-report.ts) validates this format. Required fields are `schema_version` (exactly `1`), `name`, `title`, non-empty `scenarios`, scenario `id` and `title`, device `name`, and for every step: positive integer `number`, `action`, `expectation`, `screenshot` and `alt`. The report `name` uses lowercase kebab-case. Scenario IDs are unique lowercase kebab-case; step numbers start at one and remain sequential within each device.
+Keep original screenshots immutable. If annotation is needed, preserve the original separately and record the derivation in the description; don't replace the only unmarked evidence. Prefer names that identify the case and step. Never use these images as visual-regression assertions.
 
-Use stable scenario IDs and sequential filenames. Verify every screenshot has a PNG extension, PNG signature and non-zero dimensions. Capture all requested outputs from this one manifest; do not rerun the scenario separately per renderer.
+Finalize run statuses even on failure where possible. If execution terminates before finalization, leave running as incomplete rather than inventing a terminal result. Run `npm run validate:evidence -- --target <target-root> --run <run-id>` from the pinned manifest, inspect screenshots and pass the same run to reporting. Report formatting does not rerun the scenario.
