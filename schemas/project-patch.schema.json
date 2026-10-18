@@ -21,7 +21,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": 1
+      "const": 2
     },
     "id": {
       "type": "string",
@@ -60,7 +60,7 @@
     },
     "target": {
       "type": "string",
-      "pattern": "^docs/[a-z0-9-]+\\.md#[^\\s#]+$"
+      "pattern": "^(?:docs|stack/[a-z0-9-]+)/[a-z0-9-]+\\.md#[^\\s#]+$"
     },
     "mode": {
       "enum": [
@@ -146,7 +146,7 @@
           },
           "path": {
             "type": "string",
-            "pattern": "^manifest/resources/(?:[a-z0-9]+(?:-[a-z0-9]+)*/)*[a-z0-9]+(?:-[a-z0-9]+)*\\.md$"
+            "pattern": "^resources/(?:[a-z0-9]+(?:-[a-z0-9]+)*/)*[a-z0-9]+(?:-[a-z0-9]+)*\\.md$"
           },
           "kind": {
             "enum": [
@@ -200,6 +200,20 @@
           }
         ]
       }
+    },
+    "settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "evidence_priority": {
+          "enum": [
+            "mobile-first",
+            "desktop-first",
+            "equal"
+          ]
+        }
+      },
+      "minProperties": 1
     }
   },
   "allOf": [

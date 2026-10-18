@@ -1,0 +1,17 @@
+# Проверка инструментов манифеста
+
+Читай при разработке базы или проверке интеграции трёх манифестов. Эти команды работают с изолированными fixtures; они не выбирают стек и не заменяют адаптацию продуктового приложения. Форматы результатов принадлежат [норме evidence](evidence.md).
+
+## Локальная браузерная проверка инструментов
+
+`npm run test:browser` создаёт отдельное Git-приложение из `tests/fixtures/ticket-app` внутри игнорируемого e2e/tmp базы. Установи соответствующий Chromium через `npx playwright install chromium`, если его нет в кеше. Закреплённая версия Playwright находится в package.json.
+
+Проверка исполняет пользовательский сценарий через Playwright browser API и public POM: Given доступный билет → When резервирование → Then подтверждён один билет. Сначала mobile, затем desktop. Capture-обвязка отдельно сохраняет кадры и run/evidence, запускает валидатор и рендерер, открывает HTML в браузере на двух ширинах, проверяет загрузку изображений, отсутствие горизонтального overflow и keyboard focus. Исходники fixture после запуска остаются чистыми; результаты и browser-verification.json сохраняются для осмотра.
+
+Это проверка локального client-only примера и инструментов capture/reporting. Она использует явный Node runner; интеграция с Playwright Test reporter, SSR, backend и Design Manifest этой командой не подтверждается. Выбор target/worktree и контекста harness проверяется отдельно. Unit tests `npm test` не запускают браузер и не скачивают его автоматически.
+
+`npm run test:worktree -- <project-manifest-checkout>` требует чистых E2E и Project checkout и проверяет передачу выбора в browser probe: создаёт отдельный repository с вложенным приложением, выбирает зарегистрированный task worktree, запускает capture именно в target и сверяет provenance. Проверяет отказ основного checkout и повторной записи run. Исходники остаются неизменными; proof и HTML находятся в target/e2e/tmp. До capture вызывает native Pi offline RPC и проверяет, что зарегистрированы ровно реальные skills capture/report. Нужен установленный Pi; модель не вызывается. Дополнительно наблюдает реальный Pi CLI session_start: в prompt присутствует e2e/AGENTS.md выбранного worktree и только выбранный skill catalog; CLAUDE.md ссылается на этот вход. Полные skill bodies и нормы по ссылкам остаются отложенными; исполнение процедур и создание через wt этой проверкой не подтверждаются.
+
+`test:browser` также принимает `<fixture-target-root> <repository-id> <target-id>` для существующего fixture. Это не универсальный сервер приложения: probe принимает только синтетическое ticket-приложение и не адаптирует продуктовый runtime.
+
+Для полного транспорта Project → E2E → Design запусти `npm run test:worktree -- <project-manifest-checkout> <design-manifest-checkout>`. Команда закрепляет чистые предметные базы в Project registry, создаёт постоянные тестовые адаптации в их игнорируемых workdir и вызывает owner validators до capture и после отчёта. Адаптации и Git fixtures остаются локально для проверки; автоматически не удаляются. После capture команда создаёт новый native Pi процесс с выбранными Design/report skills, экспортирует независимый локальный reference из чистой закреплённой Design-базы и открывает HTML на двух ширинах. Доказательства всех этапов связаны в target/e2e/tmp/worktree-verification.json. Сравнение остаётся not-reviewed до фактического осмотра; автоматический транспорт не выдаётся за визуальный вердикт.

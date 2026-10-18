@@ -1,6 +1,6 @@
 ---
 name: adapt-e2e-manifest
-description: Adapt the E2E Manifest to an existing project, inspect its test boundaries and contract evidence, and create missing Playwright/MSW infrastructure, project rules and coverage tracking without changing application runtime. Use for project adoption or E2E bootstrap, not for writing a single test or fixing product behavior.
+description: Adapt the E2E Manifest to an existing project, inspect its test boundaries and contract evidence, and create missing infrastructure for the explicitly selected stack, project rules and coverage tracking without changing application runtime. Use for project adoption or E2E bootstrap, not for writing a single test or fixing product behavior.
 ---
 
 # Adapt E2E Manifest
@@ -17,7 +17,7 @@ description: Adapt the E2E Manifest to an existing project, inspect its test bou
 
 ## Вход и маршрутизация
 
-1. Найди целевой репозиторий/worktree, прочитай применимые инструкции, проверь branch/status. Найди корень этой поставки манифеста и прочитай [README](../../README.md) и применимые проектные патчи из `e2e/manifest.json`. Ссылки ниже относительны поставке, команды выполняются в целевом проекте. Skill требует доступ к комплекту манифеста: при отдельной установке выясни его путь или зафиксированную ревизию; не подменяй отсутствующие правила догадками.
+1. Найди целевой репозиторий/worktree, прочитай применимые инструкции, проверь branch/status. Найди корень этой поставки манифеста и прочитай [AGENTS.md](../../AGENTS.md) и применимые проектные патчи из внешнего `workdir/<project>/<target>/manifest.json`. Ссылки ниже относительны поставке, команды выполняются в целевом проекте. Skill требует доступ к комплекту манифеста: при отдельной установке выясни его путь или зафиксированную ревизию; не подменяй отсутствующие правила догадками.
 2. Прочитай [discovery.md](references/discovery.md). Выполни read-only инвентаризацию и уточни у пользователя стек, границу browser/SSR, источники backend и область первой проверки. Уже полученные ответы сохраняются; вопросы задаются только по неизвестным решениям. Пока ответ нужен для выбора реализации, продолжай независимое обследование, но не устанавливай выбранный за пользователя стек.
 3. Зафиксируй рабочие решения в `e2e/tmp/adaptation.json`, навигацию и команды — в локальной точке входа E2E и переходи к [bootstrap.md](references/bootstrap.md): создай или адаптируй инфраструктуру и project rules, затем первый законченный сценарий. При добавлении project rules, патчей или ресурсов выполни [SSOT-аудит](../../docs/maintenance.md#обязательный-ssot-аудит); читай документы по затронутым слоям.
 4. Для каждого используемого endpoint установи достоверность схем по [контрактам](../../docs/contracts.md). Если нужна проверка реального backend, прочитай [backend-validation.md](references/backend-validation.md). Она выполняется под присмотром пользователя в согласованном объёме; отсутствие доступа не мешает автономной подготовке, но оставляет контракт непроверенным.

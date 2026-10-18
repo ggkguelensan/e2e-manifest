@@ -6,29 +6,15 @@
 
 ## Файлы
 
-```text
-e2e/tmp/
-├─ coverage.csv       # сценарии и состояние реализации
-├─ debt.csv           # a11y, contract, topology, SSR, infrastructure gaps
-├─ contracts.csv      # источники и статус проверки HTTP-операций
-├─ index.json         # индекс исходников, отношения и границы обследования
-├─ adaptation.json    # решения по стеку/SSR, ответы и оставшиеся вопросы
-├─ runs.json          # результаты локальных запусков и их область
-├─ evidence/*.json    # безопасные структурированные доказательства
-└─ reports/           # производные HTML, trace, PNG по run ID
-```
+Полная структура — в [данных evidence](../../../docs/evidence.md). Покрытие хранится в coverage.csv, долг в debt.csv, обследованные контракты при необходимости в contracts.csv. index.json — производный индекс запусков; adaptation.json содержит рабочие решения и ограничения.
 
 Создавай файл, когда для него есть данные; отсутствие файла означает «ещё не обследовано», а не пустое покрытие. CSV — UTF-8, заголовок обязателен, стандартное quoting запятых/кавычек/переносов; пустое поле означает неизвестное/неприменимое значение, не успех. JSON — UTF-8, `schema_version: 1`; IDs и ссылки проверяются перед сохранением. Не кодируй списки через произвольные разделители в CSV: отношения хранятся в JSON.
 
 ## Таблицы CSV
 
-| Файл | Обязательные колонки |
-| --- | --- |
-| `coverage.csv` | `scenario_id,capability,scenario,spec,boundary,implementation,last_run_id` |
-| `debt.csv` | `debt_id,kind,status,location,gap,workaround,risk,resolution,evidence_ref` |
-| `contracts.csv` | `operation_id,service,method,path,source,source_revision,validation_status,evidence_ref,limitation` |
+Точный состав колонок — `columns` в [валидаторе](../../../scripts/coverage.ts): coverage описывает сценарий/spec и последний связанный run; debt — проблему, обход, риск и разрешение; contracts — источник HTTP-операции и область проверки. Заголовок обязателен, порядок колонок свободный, неизвестные/повторные колонки отклоняются.
 
-Одна строка coverage — самостоятельный сценарий, включая вариант параметризации. ID стабилен при переименовании; устройства учитываются в runs, не как новые сценарии. `implementation`: `planned`, `implemented`, `blocked`; planned без существующего spec имеет пустой `spec`, blocked связан с конкретным debt. `boundary`: `browser` или `browser+ssr`; исключения раскрываются в index.
+Одна строка coverage — самостоятельный сценарий, включая вариант параметризации. ID стабилен при переименовании; устройства учитываются в runs, не как новые сценарии. `implementation`: `planned`, `implemented`, `blocked`; planned без существующего spec имеет пустой `spec`, blocked связан с открытым debt через coverage-links.json. `boundary`: `browser` или `browser+ssr`; исключения и неполнота обследования раскрываются в limitations рабочего adaptation.json.
 
 `debt.kind`: `a11y`, `contract`, `topology`, `ssr`, `infrastructure`; `status`: `open`, `resolved`. Для a11y запиши компонент/POM-метод, отсутствующий accessible name/role/label, фактический fallback, проверку уникальности и целевой semantic locator. Functional pass не закрывает a11y-долг. Ненадёжная идентификация объекта означает blocked, а не произвольный `first()`/`nth()`.
 
@@ -36,17 +22,39 @@ e2e/tmp/
 
 ## Разметка JSON
 
-| Файл | Обязательная структура помимо `schema_version` |
-| --- | --- |
-| `index.json` | `repository` (HEAD и признаки локальных изменений), `manifest` (base revision, patch revisions, время/результат проверки актуальности и hashes загруженных MD-ресурсов), `scope` (приложения, включённые/исключённые пути, completeness), `files` (относительный path, роль, content hash), `operations` (operation ID, caller layer/origin/interceptor/state owner), `relations` (scenario ID → operation IDs/debt IDs) |
-| `adaptation.json` | `decisions` (вопрос, выбранное значение, основание/ответ пользователя), `open_questions`, `limitations`; не хранит секреты и не выдаёт записанное разрешение за бессрочную авторизацию |
-| `runs.json` | `runs`: уникальный run ID, время, revision и индекс локальных изменений, command/profile/policy, scenario IDs, status (`passed`, `failed`, `not-run`), report refs и ограничения |
-| `evidence/*.json` | тип доказательства, связанные IDs, revision, среда без credentials, время, observations и limitations; schema-проверка включает операции и классы samples |
+Форматы workspace.json, adaptation.json и index.json принадлежат [норме evidence](../../../docs/evidence.md): наблюдение выбранного worktree, журнал обследования и производный индекс запусков соответственно. Не добавляй в index поля проекта, карту исходников, операции или копии статусов. Для отношений scenario↔debt используй coverage-links.json, описанный ниже.
 
-Пути к source (`spec`, `location`, `files.path`) относительны корню проекта; пути к evidence/report — `e2e/tmp/`. Не допускай выход из tmp для evidence и отчётов. Ссылки связываются по IDs; dangling/duplicate IDs считаются ошибкой индекса. Одна операция имеет одного владельца synthetic state в данном runtime; index показывает обнаруженные конфликты, не скрывает их слиянием записей.
+Карту HTTP-границы из [обследования](discovery.md#карта-http-границы) фиксируй в decisions рабочего adaptation.json: отдельное решение для обследованной операции, question задаёт её method/path, answer — caller layer, origin, interceptor и владельца состояния, basis — проверенные исходники и их revisions/hashes, source — repository либо inference. Если операция внесена в contracts.csv, используй её operation_id как ID решения. Неизвестные границы остаются open_questions; обнаруженные конфликты владельцев synthetic state — открытым topology debt. Это зафиксированные наблюдения, а не автоматически доказанная топология. Требования к реальному backend остаются у [контрактов](../../../docs/contracts.md).
 
-До использования результатов сверь HEAD, content hashes затронутых файлов и base/patch revisions. Неполное обследование маркируется в scope, устаревший результат не переносится как passed. Discovery runner сверяет реальные specs с coverage без real-backend запросов.
+Пути spec и debt.location относительны выбранному target root; ссылки на evidence — его e2e/tmp. Не допускай выход из tmp для evidence и отчётов. До повторного использования сверь HEAD, hashes затронутых файлов и base/patch revisions; неполноту и устаревание сохраняй в limitations. Валидатор таблиц проверяет записанные ссылки на specs, но не обнаруживает все сценарии автоматически: полноту устанавливай обследованием исходников и выбранной области.
 
 ## Учёт результата
 
-Наличие spec не означает passed; прохождение нескольких samples не подтверждает полный контракт; количество device runs не равно числу сценариев. Reports являются первичным доказательством запуска, CSV/JSON индексируют их область и результат. Храни данные локально и не удаляй их при обычном cleanup. Изменение приложения для закрытия a11y-долга, запросы к real backend и публикация требуют соответствующего отдельного поручения.
+Наличие spec не означает passed; прохождение нескольких samples не подтверждает полный контракт; количество device runs не равно числу сценариев. Run/evidence являются авторитетными данными запуска; HTML и индексы производны. CSV описывает покрытие, а не дублирует результаты отдельных попыток. Храни данные локально и не удаляй их при обычном cleanup. Изменение приложения для закрытия a11y-долга, запросы к real backend и публикация требуют соответствующего отдельного поручения.
+
+## Проверка таблиц и связей
+
+```sh
+npm run validate:coverage -- --target /absolute/worktree/apps/web
+```
+
+Команда читает существующие coverage/debt/contracts CSV; отсутствие таблицы возвращается как `not-surveyed`. Парсер [csv-parse](https://csv.js.org/parse/api/sync/) поддерживает стандартное quoting, multiline и BOM. Дубли ID, неизвестные колонки, неверные статусы и некорректные пути отклоняются.
+
+`coverage-links.json` — авторитетные отношения scenario↔debt, когда они нужны:
+
+```json
+{
+  "schema_version": 1,
+  "scenario_debt": [
+    { "scenario_id": "checkout", "debt_id": "missing-name" }
+  ]
+}
+```
+
+Это пример IDs, а не готовые данные проекта. Допустимы несколько долгов на сценарий и один долг для нескольких сценариев; пара уникальна, оба ID существуют в CSV. Производный index не становится вторым местом редактирования отношений.
+
+`last_run_id` ссылается на run, содержащий scenario_id с тем же spec path и текущим hash. Run проверяется [валидатором evidence](../../../docs/evidence.md); его статус не переписывается в CSV. Ссылка может вести на failed/interrupted run — она не означает успех. Изменение других исходников требует отдельной проверки актуальности, даже при неизменном spec.
+
+`evidence_ref` использует формат `runs/<run-id>/evidence.json#<evidence-id>` относительно tmp. Проверяются исходный run, его артефакты и существование ID. Для resolved debt нужны resolution и evidence_ref; наличие ссылки не доказывает смысловое устранение проблемы. Для выполненной проверки контракта обязательны source_revision, evidence_ref и limitation, ограничивающий вывод проверенными samples.
+
+Валидатор не запускает приложение, не обращается к backend и не доказывает полноту покрытия. Он проверяет сохранённые данные; обследование исходников и смысловой аудит остаются отдельными действиями.
