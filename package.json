@@ -14,7 +14,9 @@
     "validate:evidence": "node scripts/evidence.ts",
     "validate:coverage": "node scripts/coverage.ts",
     "report": "node scripts/report.ts",
-    "test:browser": "node tests/browser-flow.ts"
+    "test:browser": "node tests/browser-flow.ts",
+    "report:design": "node scripts/design-report.ts",
+    "test:design": "node tests/design-integration.ts"
   },
   "devDependencies": {
     "@playwright/test": "1.60.0",
