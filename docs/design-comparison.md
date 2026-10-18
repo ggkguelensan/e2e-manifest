@@ -16,7 +16,7 @@
 npm run report:design -- --target /absolute/worktree/apps/web --review review-id --design /absolute/design-manifest --revision <full-commit>
 ```
 
-Рендерер проверяет точный commit и чистоту Design checkout, вызывает его `scripts/validate.ts`, затем читает comparison v2 и snapshot v1. Он не копирует схемы и не скачивает зависимости. Путь указывается явно: это запуск доверенного локального кода выбранной поставки, не обнаружение произвольного соседнего репозитория.
+Рендерер проверяет точный commit и чистоту Design checkout, вызывает его `scripts/validate.ts`, затем читает comparison v3, request v1 и snapshot v1. Он не копирует схемы и не скачивает зависимости. Путь указывается явно: это запуск доверенного локального кода выбранной поставки, не обнаружение произвольного соседнего репозитория.
 
 Для UI с run_id дополнительно проверяются исходные E2E run/evidence: revision, dirty, spec path/hash, step, profile, attempt, время, hash картинки и условия. Подменённая копия отклоняется. UI без run_id остаётся внешним источником с указанным provenance; E2E-запуск для него не подразумевается.
 

@@ -37,9 +37,12 @@ try {
     await page.close();
   }
   snapshot.captured_at = new Date().toISOString(); writeFileSync(resolve(root, 'snapshot.json'), JSON.stringify(snapshot, null, 2));
-  const comparison = { schema_version: 2, comparison_id: reviewId, created_at: new Date().toISOString(), snapshot: { path: 'snapshot.json', sha256: hash(resolve(root, 'snapshot.json')) }, pairs, limitations: ['Fixture source is synthetic; no provider API or product design changes.'] };
+  const request = { schema_version: 1, review_id: reviewId, requested_at: new Date().toISOString(), pairs: pairs.map(p => ({ id: p.id, scope: p.scope })) };
+  writeFileSync(resolve(root, 'request.json'), JSON.stringify(request, null, 2));
+  const comparison = { schema_version: 3, request: { path: 'request.json', sha256: hash(resolve(root, 'request.json')) }, comparison_id: reviewId, created_at: new Date().toISOString(), snapshot: { path: 'snapshot.json', sha256: hash(resolve(root, 'snapshot.json')) }, pairs, limitations: ['Fixture source is synthetic; no provider API or product design changes.'] };
   writeFileSync(resolve(root, 'comparison.json'), JSON.stringify(comparison, null, 2));
-  writeFileSync(resolve(root, 'request.json'), JSON.stringify({ schema_version: 1, review_id: reviewId, requested_scope: 'Review independently authored reference against real fixture UI at agreed mobile/desktop profiles', pairs: pairs.map(p => ({ id: p.id, scope: p.scope })), reference_export_measurements: measurements }, null, 2));
+  mkdirSync(resolve(root, 'diagnostics'));
+  writeFileSync(resolve(root, 'diagnostics/reference-export.json'), JSON.stringify({ reference_export_measurements: measurements }, null, 2));
   const report = renderDesign(target, reviewId, design, revision);
   console.log(JSON.stringify({ root, reviewId, revision, report, status: 'not-reviewed', next: 'Inspect original pairs, record comparability and findings, validate and regenerate report; never auto-promote draft to matched.' }, null, 2));
 } finally { await browser.close(); }
