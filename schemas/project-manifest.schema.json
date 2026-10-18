@@ -1,16 +1,19 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "E2E Manifest project index",
+  "title": "E2E local adaptation",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema_version",
     "base",
-    "patches"
+    "patches",
+    "repository_id",
+    "target_id",
+    "modules"
   ],
   "properties": {
     "schema_version": {
-      "const": 1
+      "const": 2
     },
     "base": {
       "type": "object",
@@ -36,7 +39,27 @@
       "uniqueItems": true,
       "items": {
         "type": "string",
-        "pattern": "^manifest/patches/[a-z0-9]+(?:-[a-z0-9]+)*\\.json$"
+        "pattern": "^patches/[a-z0-9]+(?:-[a-z0-9]+)*\\.json$"
+      }
+    },
+    "repository_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "target_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "modules": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "playwright",
+          "msw"
+        ]
       }
     }
   }

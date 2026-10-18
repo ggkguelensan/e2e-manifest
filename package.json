@@ -16,7 +16,8 @@
     "report": "node scripts/report.ts",
     "test:browser": "node tests/browser-flow.ts",
     "report:design": "node scripts/design-report.ts",
-    "test:design": "node tests/design-integration.ts"
+    "test:design": "node tests/design-integration.ts",
+    "validate:adaptation": "node scripts/adaptation.ts"
   },
   "devDependencies": {
     "@playwright/test": "1.60.0",

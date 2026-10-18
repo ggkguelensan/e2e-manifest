@@ -55,3 +55,7 @@ npm run validate:evidence -- --target /absolute/worktree/apps/web --run checkout
 Проверка исполняет пользовательский сценарий через Playwright browser API и public POM: Given доступный билет → When резервирование → Then подтверждён один билет. Сначала mobile, затем desktop. Capture-обвязка отдельно сохраняет кадры и run/evidence, запускает валидатор и рендерер, открывает HTML в браузере на двух ширинах, проверяет загрузку изображений, отсутствие горизонтального overflow и keyboard focus. Исходники fixture после запуска остаются чистыми; результаты и browser-verification.json сохраняются для осмотра.
 
 Это проверка локального client-only примера и инструментов capture/reporting. Она использует явный Node runner; интеграция с Playwright Test reporter, SSR, backend и Design Manifest этой командой не подтверждается. Выбор target/worktree и контекста harness проверяется отдельно. Unit tests `npm test` не запускают браузер и не скачивают его автоматически.
+
+## Проектные предпочтения
+
+Точка расширения для `settings.evidence_priority` из [проектного патча](project-patches.md): mobile-first, desktop-first или equal. Это порядок сбора согласованных доказательств, не копия viewport/device проектов runner и не разрешение пропускать остальные выбранные форм-факторы. При отсутствии значения уточни неизвестное предпочтение пользователя; не выводи его из размеров одного screenshot.

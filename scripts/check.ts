@@ -1,4 +1,5 @@
 import './evidence.ts';
+import './adaptation.ts';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
