@@ -7,9 +7,9 @@
 
 | Изменение | Обязательная проверка |
 | --- | --- |
-| Spec, POM, Journey, control | [Смысловой перевод](scenarios.md#проверка-перевода), затронутые сценарии во всех настроенных projects |
+| Spec, POM, Journey, control | [Смысловой перевод](scenarios.md#проверка-перевода), затронутые сценарии во всех настроенных профилях |
 | Stubs или DTO | [Контрактный mutation audit](contracts.md#mutation-audit) и зависимые сценарии |
-| Runtime, proxy, lifecycle | [Инфраструктурные тесты](../stack/msw/http-runtime.md#инфраструктурные-проверки) с локальным upstream и затронутые suites |
+| Runtime, proxy, lifecycle | Инфраструктурные тесты выбранного runtime с локальным upstream, изоляция/cleanup и затронутые suites; для MSW — [проверки модуля](../stack/msw/http-runtime.md#инфраструктурные-проверки) |
 | Polling, таймеры, terminal state | Unit-проверки модели на интервалы, отмену и завершение; E2E — на видимый результат |
 | Даты и scenario clock | Запуск с произвольными будущими часами |
 | Адаптация проекта | [Приёмка инфраструктуры](../skills/adapt-e2e-manifest/references/bootstrap.md#приёмка), неизменность runtime приложения, coverage и a11y/contract debt |
@@ -24,11 +24,11 @@
 | Симптом | Источник доказательства | Следующий документ |
 | --- | --- | --- |
 | Неясно, что проверяется | Spec и перевод Given/When/Then | [Сценарии](scenarios.md) |
-| Не найден элемент / неверное состояние | Trace, semantic assertion, фактический UI | [UI-абстракции](../stack/playwright/ui-abstractions.md) |
+| Не найден элемент / неверное состояние | Trace, semantic assertion, фактический UI | [Границы POM](architecture.md#граница-pom), затем локаторы выбранного runner |
 | Неверное серверное состояние / время / native-событие | Controls и состояние операции | [Окружение](environment.md) |
 | Contract violation | Операция, схема, OpenAPI | [Контракты](contracts.md) |
-| Неизвестный запрос / proxy / утечка состояния | `api-exchanges`, policy, lifecycle | [Runtime](../stack/msw/http-runtime.md) |
-| Ошибка приложения / гидратации | Browser/server diagnostics | Код приложения и [runtime](../stack/msw/http-runtime.md) |
+| Неизвестный запрос / proxy / утечка состояния | `api-exchanges`, policy, lifecycle | Выбранный runtime; для MSW — [его модуль](../stack/msw/http-runtime.md) |
+| Ошибка приложения / гидратации | Browser/server diagnostics | Код приложения и выбранный runtime |
 
 Не исправляй падение произвольным sleep, ослаблением схемы или увеличением retries. Сначала установи нарушенное ожидание и владельца ошибки. Сохраняй диагностику исходного падения; проверяй её перед публикацией на чувствительные данные.
 

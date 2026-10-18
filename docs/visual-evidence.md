@@ -4,9 +4,9 @@
 
 | Задача | Владелец процедуры |
 | --- | --- |
-| Собрать новые кадры Playwright | [visualize-playwright-flows](../skills/visualize-playwright-flows/SKILL.md) |
+| Собрать новые кадры при выбранном Playwright | [visualize-playwright-flows](../skills/visualize-playwright-flows/SKILL.md) |
 | Оформить готовые результаты как HTML/MR/PR | [create-e2e-report](../skills/create-e2e-report/SKILL.md) |
-| Сравнить UI с Figma/Penpot | [Интеграция Design Manifest](design-comparison.md) |
+| Сравнить UI с выбранным дизайн-источником | [Интеграция Design Manifest](design-comparison.md) |
 
 Хранение и публикация определены [локальной политикой](local-workflow.md). Capture не включает оформление или публикацию автоматически. Разные форматы используют одно evidence. Сравнение не меняет функциональный результат запуска и не создаёт visual-regression baseline.
 

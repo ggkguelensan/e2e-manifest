@@ -24,75 +24,17 @@ Spec не содержит `page`, locators, CSS/XPath, API URL/payload, route i
 
 Соответствие смысловое, не построчное: один arrangement может задавать несколько связанных условий. Локаторы и технические ожидания не требуют Gherkin-шагов. Один вызов не скрывает самостоятельные существенные действия и результаты. `.feature`-файлы, Cucumber и хранение двух копий сценария не обязательны.
 
-### Полный пример
-
-Пример интерфейсов для приложения с обычной браузерной сессией. Fixture предоставляет перечисленные POM и backend control; `prepare` задаёт серверные данные и сессию, но не открывает страницы и не публикует билет.
-
-```gherkin
-Feature: Публикация билета
-  Scenario: Продавец публикует билет и видит его в активных продажах
-    Given продавец авторизован
-    And у него один доступный для продажи билет на «Концерт»
-    And комиссия составляет 10%
-    When продавец открывает главную страницу
-    And открывает «Мои билеты»
-    And открывает заказ «Концерт»
-    And начинает продажу
-    Then он видит один доступный билет, выбранный для продажи
-    When он переходит к цене
-    And указывает цену 12000
-    Then он видит комиссию 10%, сумму комиссии 1200 и выплату 10800
-    When он публикует билет
-    Then он видит подтверждение публикации
-    When он переходит в «Мои продажи»
-    Then он видит активную продажу «Концерт» с ценой «12 000 ₸»
-```
-
-```ts
-import { test } from './seller.fixture';
-
-test('продавец публикует билет и видит его в активных продажах', async ({
-  sellerOrders, home, myTickets, orderDetails, ticketSelection,
-  salePrice, saleSummary, publication, publicationResult, mySales,
-}) => {
-  await sellerOrders.prepare({
-    authorized: true,
-    eventName: 'Концерт',
-    availableTicketCount: 1,
-    commissionPercent: 10,
-  });
-
-  await home.open();
-  await home.openMyTickets();
-  await myTickets.openOrder('Концерт');
-  await orderDetails.startSale();
-  await ticketSelection.expectSingleAvailableTicketSelected();
-  await ticketSelection.continueToPricing();
-  await salePrice.enterAmount(12_000);
-  await saleSummary.expectPayout({
-    commissionPercent: 10,
-    commissionAmount: 1_200,
-    payoutAmount: 10_800,
-  });
-  await publication.publish();
-  await publicationResult.expectPublished();
-  await publicationResult.openMySales();
-  await mySales.expectActiveSale({
-    eventName: 'Концерт',
-    price: '12 000 ₸',
-  });
-});
-```
+Для выбранного Playwright полный [пример Gherkin ↔ spec](../stack/playwright/scenarios.md) показывает реализацию этой нормы. Другой runner сохраняет те же публичные смысловые шаги.
 
 ## Композиция и suites
 
-Playwright использует `*.spec.ts` и собственные fixtures; правила Vitest и размещения unit-тестов не переносятся на behavioral suites.
+Формат файла и механизм fixture определяет выбранный runner; правила размещения unit-тестов не переносятся на behavioral suites.
 
-Journey сокращает повторяемый путь, когда сам путь не является предметом проверки. Существенные действия и результаты раскрываются в spec. Выбор границ — в [UI-абстракциях](../stack/playwright/ui-abstractions.md).
+Journey сокращает повторяемый путь, когда сам путь не является предметом проверки. Существенные действия и результаты раскрываются в spec. Выбор границ — в [архитектуре](architecture.md).
 
 Длина spec и число зависимостей не являются самостоятельными метриками качества. Повторяемая связная последовательность может стать Journey; длинный список зависимостей требует проверить связность результата и границы POM, а не создавать общий фасад автоматически.
 
-Основной `*.main.spec.ts` начинается с полного простейшего happy path. Критичные роли получают отдельные полные пути. Ошибки, предупреждения, ограничения и альтернативы размещаются в `*.secondary.spec.ts`. Smoke дополняет полные пути. Название теста описывает наблюдаемое поведение в настоящем времени.
+Основной suite начинается с полного простейшего happy path. Критичные роли получают отдельные полные пути. Ошибки, предупреждения, ограничения и альтернативы размещаются в secondary suites. Smoke дополняет полные пути. Название теста описывает наблюдаемое поведение в настоящем времени.
 
 ## Проверка перевода
 
