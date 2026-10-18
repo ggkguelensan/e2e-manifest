@@ -10,6 +10,7 @@ assert.ok(projectBase && process.argv.length === 3, 'Usage: <project-manifest-ch
 const gitAt = (cwd: string, ...args: string[]) => execFileSync('git', ['-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false', ...args], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 assert.equal(gitAt(projectBase, 'status', '--porcelain'), '', 'Use a clean Project checkout');
 const projectRevision = gitAt(projectBase, 'rev-parse', 'HEAD');
+const { inspectPi } = await import(pathToFileURL(resolve(projectBase, 'tests/helpers/pi-discovery.ts')).href);
 const { readProject, planTask } = await import(pathToFileURL(resolve(projectBase, 'scripts/project.ts')).href);
 mkdirSync('e2e/tmp', { recursive: true });
 const root = mkdtempSync(resolve('e2e/tmp/worktree-integration-'));
@@ -28,6 +29,11 @@ const project = readProject(definitionPath, root);
 const selection = planTask(project, root, { target: 'ticket', worktree: 'worktrees/task', purpose: 'development' });
 assert.throws(() => planTask(project, root, { target: 'ticket', worktree: 'repositories/frontend', purpose: 'development' }), /main working clone/);
 const capture = () => execFileSync(process.execPath, ['tests/browser-flow.ts', selection.target_root, selection.repository_id, selection.target_id], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+const selectedSkills = [
+  { name: 'visualize-playwright-flows', path: resolve('skills/visualize-playwright-flows') },
+  { name: 'create-e2e-report', path: resolve('skills/create-e2e-report') },
+];
+const context = await inspectPi(selection.target_root, selectedSkills);
 capture();
 const { run } = validateRun(selection.target_root, 'reserve-ticket');
 assert.equal(run.worktree, selection.worktree);
@@ -51,6 +57,6 @@ assert.equal(readFileSync(runFile, 'utf8'), before, 'Second worktree must preser
 assert.equal(gitAt(secondWorktree, 'status', '--porcelain'), '');
 assert.equal(gitAt(repo, 'status', '--porcelain'), '');
 assert.equal(gitAt(worktree, 'status', '--porcelain'), '');
-const proof = { project_revision: projectRevision, selection, checks: ['main clone rejected', 'nested target captured', 'run identity matches selection', 'existing run preserved', 'same run ID isolated in second worktree', 'source checkout and worktree unchanged'], limitations: ['Native skill context and Worktrunk creation not exercised by this probe.'] };
+const proof = { project_revision: projectRevision, selection, context, checks: ['native Pi command discovery equals selected real capture/report skills', 'main clone rejected', 'nested target captured', 'run identity matches selection', 'existing run preserved', 'same run ID isolated in second worktree', 'source checkout and worktree unchanged'], limitations: ['Pi command discovery checked without model calls; full prompt and skill execution not tested. Context files disabled for diagnostic. Worktrunk creation not exercised.'] };
 writeFileSync(resolve(selection.target_root, 'e2e/tmp/worktree-verification.json'), JSON.stringify(proof, null, 2));
 console.log(JSON.stringify({ root, ...proof }, null, 2));
