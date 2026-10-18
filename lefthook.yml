@@ -1,7 +1,3 @@
-setup:
-  commands:
-    configure:
-      run: node scripts/setup.ts
 pre-commit:
   commands:
     mode-and-links:
