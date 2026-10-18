@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, lstatSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'csv-parse/sync';
@@ -21,6 +21,16 @@ export function table(text: string, kind: keyof typeof columns): Record<string, 
   return data;
 }
 export function validateCoverage(target: string) {
+  target = realpathSync(target);
+  assert(statSync(target).isDirectory(), 'Target must be a directory');
+  for (const path of ['e2e', 'e2e/tmp']) {
+    try { lstatSync(resolve(target, path)); }
+    catch (error: any) {
+      if (error.code !== 'ENOENT') throw error;
+      return { coverage: null, debt: null, contracts: null, links: [], checked_runs: [] };
+    }
+    assert(statSync(localFile(target, path)).isDirectory(), 'Coverage directory must be a directory');
+  }
   const tmp = localFile(target, 'e2e/tmp');
   const load = (kind: keyof typeof columns) => existsSync(resolve(tmp, `${kind}.csv`)) ? table(readFileSync(localFile(tmp, `${kind}.csv`), 'utf8'), kind) : null;
   const coverage = load('coverage'), debt = load('debt'), contracts = load('contracts');

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { columns, table, validateCoverage } from '../scripts/coverage.ts';
@@ -37,6 +37,18 @@ test('missing table remains unexamined and implemented requires actual spec', ()
   write('coverage', [coverage]); assert.equal(check().coverage.length, 1);
   coverage[3] = ''; write('coverage', [coverage]); assert.throws(check, /needs spec/);
   coverage[3] = '../escape'; write('coverage', [coverage]); assert.throws(check, /Unsafe path/);
+}));
+test('absent tmp or e2e is unexamined without creating directories', () => fixture(({ root, tmp, check }) => {
+  rmSync(tmp, {recursive:true});
+  const empty = {coverage:null,debt:null,contracts:null,links:[],checked_runs:[]};
+  assert.deepEqual(check(), empty); assert.equal(existsSync(tmp), false);
+  rmSync(resolve(root, 'e2e'), {recursive:true});
+  assert.deepEqual(check(), empty); assert.equal(existsSync(resolve(root, 'e2e')), false);
+}));
+test('escaped or dangling coverage directories are errors, not unexamined data', () => fixture(({ root, tmp, check }) => {
+  rmSync(tmp, {recursive:true});
+  symlinkSync(resolve(root, 'missing'), tmp); assert.throws(check); rmSync(tmp);
+  symlinkSync(scratch, tmp); assert.throws(check, /escapes root/);
 }));
 test('blocked needs an existing open debt; duplicate and dangling links fail', () => fixture(({ tmp, write, coverage, debt, check }) => {
   coverage[5] = 'blocked'; write('coverage', [coverage]); write('debt', [debt]); assert.throws(check, /linked open debt/);
