@@ -10,7 +10,7 @@
 | --- | --- |
 | Runner | Подключить согласованные test dependencies через существующий package manager/lockfile; profiles, локальные reports в `e2e/tmp/reports/` |
 | Запуск приложения | Использовать штатный entrypoint и существующие конфигурационные hooks; test-only overlay, свободные порты, отдельные caches/build/reports и cleanup |
-| HTTP runtime | Создать общий MSW API, policy, registration/validation, журнал, per-test state, drain и проверку нарушений по [runtime](../../../stack/msw/http-runtime.md) |
+| HTTP runtime | Реализовать выбранный synthetic backend: явная сеть, изоляция, регистрация операций, журнал и завершение запросов перед cleanup; при выбранном MSW используй [его runtime](../../../stack/msw/http-runtime.md) |
 | Test fixtures | Создать lifecycle, browser session, clock и controls по [окружению](../../../docs/environment.md); не скрывать пользовательские шаги |
 | Contracts / stubs | Задать provenance и статус валидации; использовать [правила неопределённых контрактов](../../../docs/contracts.md#неподтверждённый-контракт) вместо выдуманного строгого DTO |
 | Первый сценарий | Полный выбранный пользовательский результат, Gherkin ↔ spec, нужные POM; Journey только при необходимости |

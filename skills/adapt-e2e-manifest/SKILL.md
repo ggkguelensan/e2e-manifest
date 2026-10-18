@@ -1,6 +1,6 @@
 ---
 name: adapt-e2e-manifest
-description: Adapt the E2E Manifest to an existing project, inspect its test boundaries and contract evidence, and create missing Playwright/MSW infrastructure, project rules and coverage tracking without changing application runtime. Use for project adoption or E2E bootstrap, not for writing a single test or fixing product behavior.
+description: Adapt the E2E Manifest to an existing project, inspect its test boundaries and contract evidence, and create missing infrastructure for the explicitly selected stack, project rules and coverage tracking without changing application runtime. Use for project adoption or E2E bootstrap, not for writing a single test or fixing product behavior.
 ---
 
 # Adapt E2E Manifest
