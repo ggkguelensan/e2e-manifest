@@ -1,24 +1,35 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createServer } from 'node:http';
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { chromium, expect } from '@playwright/test';
 import { hash, validateRun } from '../scripts/evidence.ts';
 import { renderRun } from '../scripts/report.ts';
 
+const args = process.argv.slice(2);
+assert.ok(args.length === 0 || args.length === 3, 'Usage: [<fixture-target-root> <repository-id> <target-id>]');
 const scratch = resolve('e2e/tmp'); mkdirSync(scratch, { recursive: true });
-const root = mkdtempSync(resolve(scratch, 'browser-flow-'));
-cpSync(resolve('tests/fixtures/ticket-app'), root, { recursive: true });
-writeFileSync(resolve(root, 'e2e/.gitignore'), '/tmp/\n');
+const root = args.length ? realpathSync(args[0]) : mkdtempSync(resolve(scratch, 'browser-flow-'));
 const git = (...args: string[]) => execFileSync('git', ['-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false', ...args], { cwd: root, encoding: 'utf8' }).trim();
-git('init', '-b', 'task/browser-flow'); git('add', '.'); git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-m', 'Isolated test application');
+if (!args.length) {
+  cpSync(resolve('tests/fixtures/ticket-app'), root, { recursive: true });
+  writeFileSync(resolve(root, 'e2e/.gitignore'), '/tmp/\n');
+  git('init', '-b', 'task/browser-flow'); git('add', '.'); git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-m', 'Isolated test application');
+}
+// This probe serves the synthetic ticket fixture only; it is not a product runner.
+assert.equal(hash(resolve(root, 'index.html')), hash(resolve('tests/fixtures/ticket-app/index.html')), 'Expected isolated ticket fixture');
+assert.ok(readFileSync(resolve(root, 'e2e/.gitignore'), 'utf8').split(/\r?\n/).includes('/tmp/'), 'Target must ignore /tmp/');
+const worktree = realpathSync(git('rev-parse', '--show-toplevel'));
+const initialStatus = git('status', '--porcelain');
 const { TicketPage } = await import(pathToFileURL(resolve(root, 'e2e/ticket.pom.ts')).href);
 const { reserveTicket } = await import(pathToFileURL(resolve(root, 'e2e/ticket.spec.ts')).href);
 const runId = 'reserve-ticket';
-const directory = resolve(root, `e2e/tmp/runs/${runId}`); mkdirSync(resolve(directory, 'assets'), { recursive: true });
-const run: any = { schema_version: 1, run_id: runId, repository_id: 'isolated-fixture', target_id: 'ticket-app', worktree: root, target_path: '.', revision: git('rev-parse', 'HEAD'), dirty: false, started_at: new Date().toISOString(), finished_at: null, status: 'running', cases: [], limitations: ['Local client-only fixture; no external backend, SSR or design provider exercised.'] };
+const directory = resolve(root, `e2e/tmp/runs/${runId}`); mkdirSync(resolve(root, 'e2e/tmp/runs'), { recursive: true });
+mkdirSync(directory); // Refuse to overwrite a previous run.
+mkdirSync(resolve(directory, 'assets'));
+const run: any = { schema_version: 1, run_id: runId, repository_id: args[1] ?? 'isolated-fixture', target_id: args[2] ?? 'ticket-app', worktree, target_path: relative(worktree, root).split('\\').join('/') || '.', revision: git('rev-parse', 'HEAD'), dirty: initialStatus !== '', started_at: new Date().toISOString(), finished_at: null, status: 'running', cases: [], limitations: ['Local client-only fixture; no external backend, SSR or design provider exercised.'] };
 const evidence: any = { schema_version: 1, run_id: runId, items: [] };
 const save = () => { writeFileSync(resolve(directory, 'run.json'), JSON.stringify(run, null, 2)); writeFileSync(resolve(directory, 'evidence.json'), JSON.stringify(evidence, null, 2)); };
 save();
@@ -60,7 +71,7 @@ try {
     inspection.push({ width, images_loaded: 6, errors, screenshot: shot }); await page.close();
   }
   writeFileSync(resolve(directory, 'reports/browser-verification.json'), JSON.stringify({ browser: browser.version(), report, inspection }, null, 2));
-  assert.equal(git('status', '--porcelain'), '');
+  assert.equal(git('status', '--porcelain'), initialStatus, 'Capture must preserve source state');
   console.log(JSON.stringify({ root, report, browser: browser.version(), cases: run.cases.length, artifacts: evidence.items.length, inspection }, null, 2));
 } catch (error) {
   if (run.status === 'running') { run.status = run.cases.some((c: any) => c.status === 'failed') ? 'failed' : 'interrupted'; run.finished_at = new Date().toISOString(); run.limitations.push(String(error)); save(); }
