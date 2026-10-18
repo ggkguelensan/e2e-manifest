@@ -36,12 +36,14 @@ while (bases.some(base => { const path = relative(projectRoot, base); return pat
 assert.notEqual(projectRoot, dirname(projectRoot), 'Checkouts must share a project container below filesystem root');
 const adaptations: Record<string, string> = {};
 const e2eDirectory = resolve(e2eBase, 'workdir', basename(root));
+mkdirSync(dirname(e2eDirectory), { recursive: true });
 mkdirSync(e2eDirectory); // Unique fixture; never overwrite an existing adaptation.
 writeFileSync(resolve(e2eDirectory, 'manifest.json'), JSON.stringify({ schema_version: 2, base: { path: relative(e2eDirectory, e2eBase), revision: e2eRevision }, repository_id: 'frontend', target_id: 'ticket', modules: ['playwright'], patches: [] }, null, 2));
 adaptations.e2e = relative(projectRoot, e2eDirectory);
 const manifests = [{ id: 'e2e', path: relative(projectRoot, e2eBase), revision: e2eRevision }];
 if (designBase) {
   const directory = resolve(designBase, 'workdir', basename(root));
+  mkdirSync(dirname(directory), { recursive: true });
   mkdirSync(directory); mkdirSync(resolve(directory, 'resources'));
   const source = `Independent synthetic local reference: ${resolve(designBase, 'tests/fixtures/reservation-reference.html')}. Collect into target e2e/tmp; no permission to modify a design or application.\n`;
   writeFileSync(resolve(directory, 'resources/source.md'), source);
