@@ -1,5 +1,7 @@
 # MR/PR gallery
 
+Read for an MR/PR gallery; defines authorization, upload and verification.
+
 ## Authorization and preservation
 
 An MR/PR URL alone is not authorization to modify it. Prepare the gallery and validate evidence first; update the target description only when the user has requested that update. Existing authorization remains valid and does not need to be requested again.

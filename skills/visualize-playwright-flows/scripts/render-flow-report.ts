@@ -190,6 +190,9 @@ const fileExists = async (path: string): Promise<boolean> => {
 
 const validateManifest = (input: unknown): FlowManifest => {
 	const manifest = requireObject(input, 'manifest');
+	if (manifest.schema_version !== 1) {
+		fail('manifest.schema_version must be 1');
+	}
 	const name = requireID(manifest.name, 'manifest.name');
 	const title = requireString(manifest.title, 'manifest.title');
 	const scenarios: FlowScenario[] = requireArray(
