@@ -26,6 +26,14 @@
 
 Создавай каталоги по необходимости. Хранение и ignore определены [локальной политикой](local-workflow.md). Review-форматы принадлежат подключённому Design Manifest. Не веди параллельный runs.json: агрегат строится из run.json. Прежние пользовательские данные сохраняются до явного решения об их переносе.
 
+## Рабочее обследование
+
+[workspace.json](../schemas/workspace.schema.json) — наблюдение Git для выбранного target: repository/target IDs, физический worktree, вложенный путь, revision, branch (null при detached), dirty и время. `npm run discovery -- observe <target-root> <repository-id> <target-id>` выводит JSON без записи; сохрани его в target/e2e/tmp/workspace.json после проверки ignore. IDs получай из Project selection или явного standalone-выбора.
+
+Рабочий [adaptation.json](../schemas/discovery.schema.json) закрепляет workspace по hash и содержит recorded_at, decisions, open_questions и limitations. Решение имеет ID, question, answer, basis и source: user/repository/inference. Это журнал обследования, не постоянная адаптация и не разрешение. Вывод агента с source=inference не подменяет ответ пользователя о стеке, области или доступе; нерешённые вопросы остаются открытыми. Согласованные нормативные настройки переноси к владельцу в workdir, сохраняя здесь только контекст обследования.
+
+`npm run discovery -- validate <target-root> <repository-id> <target-id>` проверяет оба файла, идентичность, связи, hash, время и уникальность решений. Изменившиеся revision/dirty отражаются отдельными флагами; история не переписывается и не выдаётся за текущее состояние. Совпавший dirty не доказывает одинаковые незакоммиченные bytes. Валидатор не устанавливает истинность ответов и не объявляет адаптацию завершённой.
+
 ## Производный индекс
 
 `npm run index -- <target-root>` выводит восстанавливаемый индекс, `--write` записывает target/e2e/tmp/index.json. Все найденные runs сначала проходят validate:evidence; повреждённый запуск прерывает построение и сохраняет прежний индекс. Каждый элемент содержит run_id и пути/hashes run.json и evidence.json. Статусы не копируются: потребитель читает авторитетный run по ссылке и проверяет hash. Изменение источника делает индекс устаревшим; пересоздай его после capture, не одновременно с записью запуска.

@@ -20,7 +20,8 @@
     "validate:adaptation": "node scripts/adaptation.ts",
     "test:reference": "node tests/reference-comparison.ts",
     "test:worktree": "node tests/worktree-integration.ts",
-    "index": "node scripts/index.ts"
+    "index": "node scripts/index.ts",
+    "discovery": "node scripts/discovery.ts"
   },
   "devDependencies": {
     "@playwright/test": "1.60.0",

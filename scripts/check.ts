@@ -1,3 +1,4 @@
+import './discovery.ts';
 import './index.ts';
 import './evidence.ts';
 import './adaptation.ts';

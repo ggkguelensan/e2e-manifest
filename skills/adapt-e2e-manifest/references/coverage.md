@@ -25,7 +25,7 @@
 | Файл | Обязательная структура помимо `schema_version` |
 | --- | --- |
 | `index.json` | `repository` (HEAD и признаки локальных изменений), `manifest` (base revision, patch revisions, время/результат проверки актуальности и hashes загруженных MD-ресурсов), `scope` (приложения, включённые/исключённые пути, completeness), `files` (относительный path, роль, content hash), `operations` (operation ID, caller layer/origin/interceptor/state owner), `relations` (производные связи из авторитетных данных, без отдельного редактирования) |
-| `adaptation.json` | `decisions` (вопрос, выбранное значение, основание/ответ пользователя), `open_questions`, `limitations`; не хранит секреты и не выдаёт записанное разрешение за бессрочную авторизацию |
+| `adaptation.json` | [Схема рабочего обследования](../../../schemas/discovery.schema.json): workspace/hash, recorded_at, decisions (ID, question, answer, basis, source), open_questions, limitations; не хранит секреты и не выдаёт записанное разрешение за бессрочную авторизацию |
 
 Пути к source (`spec`, `location`, `files.path`) относительны выбранному target root; пути к evidence/report — `e2e/tmp/`. Не допускай выход из tmp для evidence и отчётов. Ссылки связываются по IDs; dangling/duplicate IDs считаются ошибкой индекса. Одна операция имеет одного владельца synthetic state в данном runtime; index показывает обнаруженные конфликты, не скрывает их слиянием записей.
 
