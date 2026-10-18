@@ -3,12 +3,14 @@ import { execFileSync } from 'node:child_process';
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { chromium } from '@playwright/test';
 import { validateRun } from '../scripts/evidence.ts';
 
-const [projectBase] = process.argv.slice(2);
-assert.ok(projectBase && process.argv.length === 3, 'Usage: <project-manifest-checkout>');
+const [projectBase, designBase] = process.argv.slice(2);
+assert.ok(projectBase && [3,4].includes(process.argv.length), 'Usage: <project-manifest-checkout> [design-manifest-checkout]');
 const gitAt = (cwd: string, ...args: string[]) => execFileSync('git', ['-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false', ...args], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 assert.equal(gitAt(projectBase, 'status', '--porcelain'), '', 'Use a clean Project checkout');
+if (designBase) assert.equal(gitAt(designBase, 'status', '--porcelain'), '', 'Use a clean Design checkout');
 const projectRevision = gitAt(projectBase, 'rev-parse', 'HEAD');
 const { inspectPi } = await import(pathToFileURL(resolve(projectBase, 'tests/helpers/pi-discovery.ts')).href);
 const { readProject, planTask } = await import(pathToFileURL(resolve(projectBase, 'scripts/project.ts')).href);
@@ -57,6 +59,33 @@ assert.equal(readFileSync(runFile, 'utf8'), before, 'Second worktree must preser
 assert.equal(gitAt(secondWorktree, 'status', '--porcelain'), '');
 assert.equal(gitAt(repo, 'status', '--porcelain'), '');
 assert.equal(gitAt(worktree, 'status', '--porcelain'), '');
-const proof = { project_revision: projectRevision, selection, context, checks: ['native Pi command discovery equals selected real capture/report skills', 'main clone rejected', 'nested target captured', 'run identity matches selection', 'existing run preserved', 'same run ID isolated in second worktree', 'source checkout and worktree unchanged'], limitations: ['Pi command discovery checked without model calls; full prompt and skill execution not tested. Context files disabled for diagnostic. Worktrunk creation not exercised.'] };
+let designReview = null;
+if (designBase) {
+  const designContext = await inspectPi(selection.target_root, [
+    { name: 'compare-ui-with-design', path: resolve(designBase, 'skills/compare-ui-with-design') },
+    { name: 'create-e2e-report', path: resolve('skills/create-e2e-report') },
+  ]);
+  const exported = JSON.parse(execFileSync(process.execPath, ['tests/reference-comparison.ts', selection.target_root, 'reserve-ticket', designBase], { encoding: 'utf8', stdio: 'pipe' }));
+  assert.equal(exported.revision, gitAt(designBase, 'rev-parse', 'HEAD'));
+  const comparison = JSON.parse(readFileSync(resolve(exported.root, 'comparison.json'), 'utf8'));
+  assert.equal(comparison.pairs.length, run.cases.length);
+  assert.ok(comparison.pairs.every((pair: any) => pair.status === 'not-reviewed' && pair.ui.run_id === 'reserve-ticket'));
+  const browser = await chromium.launch(); const checks = [];
+  try {
+    for (const width of [390, 1280]) {
+      const page = await browser.newPage({ viewport: { width, height: 900 } }); const errors: string[] = [];
+      page.on('pageerror', error => errors.push(error.message));
+      await page.goto(pathToFileURL(exported.report).href);
+      await page.locator('img').evaluateAll(async images => { for (const image of images) { image.loading = 'eager'; await image.decode(); } });
+      assert.equal(await page.locator('img').count(), run.cases.length * 2);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      assert.deepEqual(errors, []); checks.push({ width, loaded_images: run.cases.length * 2, errors });
+      await page.close();
+    }
+  } finally { await browser.close(); }
+  designReview = { ...exported, context: designContext, report_checks: checks, assessment: 'Draft only; original image review required before findings or conclusive verdict.' };
+}
+assert.equal(gitAt(worktree, 'status', '--porcelain'), '');
+const proof = { project_revision: projectRevision, selection, context, design_review: designReview, checks: ['native Pi command discovery equals selected real capture/report skills', 'main clone rejected', 'nested target captured', 'run identity matches selection', 'existing run preserved', 'same run ID isolated in second worktree', 'source checkout and worktree unchanged'], limitations: ['Pi command discovery checked without model calls; full prompt and skill execution not tested. Context files disabled for diagnostic. Worktrunk creation not exercised.'] };
 writeFileSync(resolve(selection.target_root, 'e2e/tmp/worktree-verification.json'), JSON.stringify(proof, null, 2));
 console.log(JSON.stringify({ root, ...proof }, null, 2));
