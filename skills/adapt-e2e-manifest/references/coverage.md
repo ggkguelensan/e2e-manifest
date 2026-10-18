@@ -6,7 +6,7 @@
 
 ## Файлы
 
-Полная структура — в [данных evidence](../../../docs/evidence.md). Покрытие хранится в coverage.csv, долг в debt.csv, обследованные контракты при необходимости в contracts.csv. index.json — производный индекс связей; adaptation.json содержит рабочие решения и ограничения.
+Полная структура — в [данных evidence](../../../docs/evidence.md). Покрытие хранится в coverage.csv, долг в debt.csv, обследованные контракты при необходимости в contracts.csv. index.json — производный индекс запусков; adaptation.json содержит рабочие решения и ограничения.
 
 Создавай файл, когда для него есть данные; отсутствие файла означает «ещё не обследовано», а не пустое покрытие. CSV — UTF-8, заголовок обязателен, стандартное quoting запятых/кавычек/переносов; пустое поле означает неизвестное/неприменимое значение, не успех. JSON — UTF-8, `schema_version: 1`; IDs и ссылки проверяются перед сохранением. Не кодируй списки через произвольные разделители в CSV: отношения хранятся в JSON.
 
@@ -14,7 +14,7 @@
 
 Точный состав колонок — `columns` в [валидаторе](../../../scripts/coverage.ts): coverage описывает сценарий/spec и последний связанный run; debt — проблему, обход, риск и разрешение; contracts — источник HTTP-операции и область проверки. Заголовок обязателен, порядок колонок свободный, неизвестные/повторные колонки отклоняются.
 
-Одна строка coverage — самостоятельный сценарий, включая вариант параметризации. ID стабилен при переименовании; устройства учитываются в runs, не как новые сценарии. `implementation`: `planned`, `implemented`, `blocked`; planned без существующего spec имеет пустой `spec`, blocked связан с открытым debt через coverage-links.json. `boundary`: `browser` или `browser+ssr`; исключения раскрываются в index.
+Одна строка coverage — самостоятельный сценарий, включая вариант параметризации. ID стабилен при переименовании; устройства учитываются в runs, не как новые сценарии. `implementation`: `planned`, `implemented`, `blocked`; planned без существующего spec имеет пустой `spec`, blocked связан с открытым debt через coverage-links.json. `boundary`: `browser` или `browser+ssr`; исключения и неполнота обследования раскрываются в limitations рабочего adaptation.json.
 
 `debt.kind`: `a11y`, `contract`, `topology`, `ssr`, `infrastructure`; `status`: `open`, `resolved`. Для a11y запиши компонент/POM-метод, отсутствующий accessible name/role/label, фактический fallback, проверку уникальности и целевой semantic locator. Functional pass не закрывает a11y-долг. Ненадёжная идентификация объекта означает blocked, а не произвольный `first()`/`nth()`.
 
@@ -22,14 +22,11 @@
 
 ## Разметка JSON
 
-| Файл | Обязательная структура помимо `schema_version` |
-| --- | --- |
-| `index.json` | `repository` (HEAD и признаки локальных изменений), `manifest` (base revision, patch revisions, время/результат проверки актуальности и hashes загруженных MD-ресурсов), `scope` (приложения, включённые/исключённые пути, completeness), `files` (относительный path, роль, content hash), `operations` (operation ID, caller layer/origin/interceptor/state owner), `relations` (производные связи из авторитетных данных, без отдельного редактирования) |
-| `adaptation.json` | [Схема рабочего обследования](../../../schemas/discovery.schema.json): workspace/hash, recorded_at, decisions (ID, question, answer, basis, source), open_questions, limitations; не хранит секреты и не выдаёт записанное разрешение за бессрочную авторизацию |
+Форматы workspace.json, adaptation.json и index.json принадлежат [норме evidence](../../../docs/evidence.md): наблюдение выбранного worktree, журнал обследования и производный индекс запусков соответственно. Не добавляй в index поля проекта, карту исходников, операции или копии статусов. Для отношений scenario↔debt используй coverage-links.json, описанный ниже.
 
-Пути к source (`spec`, `location`, `files.path`) относительны выбранному target root; пути к evidence/report — `e2e/tmp/`. Не допускай выход из tmp для evidence и отчётов. Ссылки связываются по IDs; dangling/duplicate IDs считаются ошибкой индекса. Одна операция имеет одного владельца synthetic state в данном runtime; index показывает обнаруженные конфликты, не скрывает их слиянием записей.
+Карту HTTP-границы из [обследования](discovery.md#карта-http-границы) фиксируй в decisions рабочего adaptation.json: отдельное решение для обследованной операции, question задаёт её method/path, answer — caller layer, origin, interceptor и владельца состояния, basis — проверенные исходники и их revisions/hashes, source — repository либо inference. Если операция внесена в contracts.csv, используй её operation_id как ID решения. Неизвестные границы остаются open_questions; обнаруженные конфликты владельцев synthetic state — открытым topology debt. Это зафиксированные наблюдения, а не автоматически доказанная топология. Требования к реальному backend остаются у [контрактов](../../../docs/contracts.md).
 
-До использования результатов сверь HEAD, content hashes затронутых файлов и base/patch revisions. Неполное обследование маркируется в scope, устаревший результат не переносится как passed. Discovery runner сверяет реальные specs с coverage без real-backend запросов.
+Пути spec и debt.location относительны выбранному target root; ссылки на evidence — его e2e/tmp. Не допускай выход из tmp для evidence и отчётов. До повторного использования сверь HEAD, hashes затронутых файлов и base/patch revisions; неполноту и устаревание сохраняй в limitations. Валидатор таблиц проверяет записанные ссылки на specs, но не обнаруживает все сценарии автоматически: полноту устанавливай обследованием исходников и выбранной области.
 
 ## Учёт результата
 
@@ -60,4 +57,4 @@ npm run validate:coverage -- --target /absolute/worktree/apps/web
 
 `evidence_ref` использует формат `runs/<run-id>/evidence.json#<evidence-id>` относительно tmp. Проверяются исходный run, его артефакты и существование ID. Для resolved debt нужны resolution и evidence_ref; наличие ссылки не доказывает смысловое устранение проблемы. Для выполненной проверки контракта обязательны source_revision, evidence_ref и limitation, ограничивающий вывод проверенными samples.
 
-Валидатор не запускает приложение, не обращается к backend и не доказывает полноту покрытия. Он проверяет сохранённые данные; discovery runner и смысловой аудит остаются отдельными действиями.
+Валидатор не запускает приложение, не обращается к backend и не доказывает полноту покрытия. Он проверяет сохранённые данные; обследование исходников и смысловой аудит остаются отдельными действиями.
