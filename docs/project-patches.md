@@ -30,7 +30,7 @@ e2e/
 | `review` | Для active: проверенная `revision`, `reviewed_at`, `review_due_at` в RFC 3339 с timezone |
 | `topic` | `scenarios`, `ui`, `environment`, `contracts`, `runtime`, `verification` или `workflow` |
 | `scope` | Непустой список файлов/поддеревьев относительно проекта; `.` — весь проект |
-| `target` | Документ базы и существующий heading anchor, например `docs/http-runtime.md#команды-и-режим-запуска` |
+| `target` | Документ базы (docs или stack/<module>) и существующий heading anchor, например `stack/msw/http-runtime.md#команды-и-режим-запуска` |
 | `mode` | `supplement` — добавить требование; `override` — заменить разрешённую проектную настройку |
 | `reason`, `requirements`, `verification` | Причина, краткие требования и способ проверки; подробности — в ресурсах без копирования |
 | `decision_ref` | Для override: конкретное решение пользователя о замене; не разрешение внешних действий |

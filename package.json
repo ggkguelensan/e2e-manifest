@@ -1,0 +1,18 @@
+{
+  "name": "e2e-manifest",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "postinstall": "lefthook install && lefthook run setup",
+    "setup": "lefthook run setup",
+    "check": "node scripts/check.ts",
+    "test": "node --test tests/*.test.ts"
+  },
+  "devDependencies": {
+    "lefthook": "2.2.2"
+  }
+}

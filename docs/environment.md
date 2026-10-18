@@ -46,4 +46,4 @@ Browser hooks и реализация публичного callback скрыты
 
 Behavioral E2E проверяет видимые состояния. Интервалы, количество запросов, отмена и остановка после terminal state проверяются unit-тестами модели. Проверки с произвольными будущими часами выявляют зависимость от фиксированной календарной даты.
 
-Транспорт и lifecycle определены в [HTTP runtime](http-runtime.md), схемы и mutation audit — в [контрактах](contracts.md).
+Транспорт и lifecycle определены в [HTTP runtime](../stack/msw/http-runtime.md), схемы и mutation audit — в [контрактах](contracts.md).

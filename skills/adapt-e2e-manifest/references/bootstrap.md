@@ -10,7 +10,7 @@
 | --- | --- |
 | Runner | Подключить согласованные test dependencies через существующий package manager/lockfile; profiles, локальные reports в `e2e/tmp/reports/` |
 | Запуск приложения | Использовать штатный entrypoint и существующие конфигурационные hooks; test-only overlay, свободные порты, отдельные caches/build/reports и cleanup |
-| HTTP runtime | Создать общий MSW API, policy, registration/validation, журнал, per-test state, drain и проверку нарушений по [runtime](../../../docs/http-runtime.md) |
+| HTTP runtime | Создать общий MSW API, policy, registration/validation, журнал, per-test state, drain и проверку нарушений по [runtime](../../../stack/msw/http-runtime.md) |
 | Test fixtures | Создать lifecycle, browser session, clock и controls по [окружению](../../../docs/environment.md); не скрывать пользовательские шаги |
 | Contracts / stubs | Задать provenance и статус валидации; использовать [правила неопределённых контрактов](../../../docs/contracts.md#неподтверждённый-контракт) вместо выдуманного строгого DTO |
 | Первый сценарий | Полный выбранный пользовательский результат, Gherkin ↔ spec, нужные POM; Journey только при необходимости |
@@ -23,7 +23,7 @@ Test-only изменения общих manifests/config допустимы, е�
 
 ## UI без доступной семантики
 
-Не добавляй ARIA, roles, labels, test IDs или другую разметку в приложение. Найди существующую семантику, текст, атрибуты и область. При необходимости используй [ограниченный fallback в POM](../../../docs/ui-abstractions.md#локаторы-и-assertions) и сразу добавь долг в coverage.
+Не добавляй ARIA, roles, labels, test IDs или другую разметку в приложение. Найди существующую семантику, текст, атрибуты и область. При необходимости используй [ограниченный fallback в POM](../../../stack/playwright/ui-abstractions.md#локаторы-и-assertions) и сразу добавь долг в coverage.
 
 Сценарий должен проверять действие и видимый результат. Если по существующему UI нельзя надёжно отличить нужный объект, не выбирай произвольный `first()`/`nth()` и не подменяй assertion: запиши конкретную заблокированную проверку. Исправление продукта — отдельная задача пользователя.
 

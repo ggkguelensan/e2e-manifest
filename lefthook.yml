@@ -1,0 +1,12 @@
+setup:
+  commands:
+    configure:
+      run: node scripts/setup.ts
+pre-commit:
+  commands:
+    mode-and-links:
+      run: node scripts/guard.ts && npm run check && git diff --cached --check
+pre-push:
+  commands:
+    mode-and-tests:
+      run: node scripts/guard.ts && npm run check && npm test

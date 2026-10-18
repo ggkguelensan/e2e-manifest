@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "modules": {
+    "playwright": {
+      "requires": []
+    },
+    "msw": {
+      "requires": []
+    }
+  }
+}

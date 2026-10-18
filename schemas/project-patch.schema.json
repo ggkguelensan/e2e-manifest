@@ -60,7 +60,7 @@
     },
     "target": {
       "type": "string",
-      "pattern": "^docs/[a-z0-9-]+\\.md#[^\\s#]+$"
+      "pattern": "^(?:docs|stack/[a-z0-9-]+)/[a-z0-9-]+\\.md#[^\\s#]+$"
     },
     "mode": {
       "enum": [
